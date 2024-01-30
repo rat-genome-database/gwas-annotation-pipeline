@@ -13,6 +13,7 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.FileSystemResource;
 
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -88,8 +89,17 @@ public class Manager {
                 existingQtl.add(gwasQtl);
             }
             else {
-                Double pVal = gc.getpVal().doubleValue();
-                gwasQtl.setPValue(pVal);
+                BigDecimal pval = gc.getpVal();
+                int scale = pval.scale();
+                if (scale>83){
+                    gwasQtl.setPValue(0.0);
+                    gwasQtl.setpValueMlog(gc.getpValMlog());
+                }
+                else {
+                    Double pVal = gc.getpVal().doubleValue();
+                    gwasQtl.setPValue(pVal);
+                }
+
                 int qtlNum = dao.GenerateNextQTLSeqForGwas();
                 gwasQtl.setSymbol("GWAS" + qtlNum + "_H");
                 gwasQtl.setName(gc.getMapTrait() + " " + "GWAS" + qtlNum + " (human)");
