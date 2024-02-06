@@ -106,8 +106,16 @@ public class DAO {
         qdao.insertQTL(q,"ACTIVE",1);
     }
 
+    public int insertQTLBatch(Collection<QTL> qtls) throws Exception{
+        return qdao.insertQTLBatch(qtls);
+    }
+
     public int insertAnnotation(Annotation a) throws Exception {
         return adao.insertAnnotation(a);
+    }
+
+    public int insertAnnotationsBatch(Collection<Annotation> annots) throws Exception{
+        return adao.insertAnnotationsBatch(annots);
     }
 
     public List<Term> getQTLTraitTerms(int rgdId) throws Exception{
