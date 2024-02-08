@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="hrdpVariants" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GWAS Annotation Pipeline -- ver. 1.0 -- Nov 28, 2023"/>
+        <property name="version" value="GWAS Annotation Pipeline -- ver. 1.1 -- Feb 5, 2024"/>
         <property name="createdBy" value="75" />
     </bean>
 

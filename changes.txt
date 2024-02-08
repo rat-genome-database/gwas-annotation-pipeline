@@ -1,3 +1,6 @@
+February 5, 2024
+updating insert to an insertBatch
+
 January 10, 2024
 finishing qtl annot side
 
