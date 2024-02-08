@@ -66,10 +66,10 @@ public class Manager {
         List<QTL> newQtls = new ArrayList<>();
         List<Annotation> allAnnots = new ArrayList<>();
         for (GWASCatalog gc : gwas){
-
+            String[] snps = gc.getSnps().split(",");
             if (gc.getEfoId()==null)
                 continue;
-            if (!gc.getSnps().startsWith("rs"))
+            if (!gc.getSnps().startsWith("rs") && snps.length > 1)
                 continue;
             if (gc.getSnps().contains(" x "))
                 continue;
