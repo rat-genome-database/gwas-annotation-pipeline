@@ -206,12 +206,13 @@ public class Manager {
         if (!newQtls.isEmpty()) {
             status.info("\tNew QTLs being made for GWAS: "+newQtls.size());
             dao.insertQTLBatch(newQtls);
+            dao.updateGwasQtlRgdIdBatch(gwas);
         }
         if (!allAnnots.isEmpty()){
             status.info("\tAnnotations for QTLs being made: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
-        dao.updateGwasQtlRgdIdBatch(gwas);
+
         return;
     }
 
