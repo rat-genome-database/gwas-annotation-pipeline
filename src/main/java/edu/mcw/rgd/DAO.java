@@ -10,6 +10,9 @@ import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
 import edu.mcw.rgd.datamodel.variants.VariantMapData;
 import edu.mcw.rgd.process.Utils;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.*;
 
 public class DAO {
@@ -181,5 +184,47 @@ public class DAO {
 
     public int updateGwasQtlRgdIdBatch(Collection<GWASCatalog> update) throws Exception{
         return gdao.updateGwasQtlRgdIdBatch(update);
+    }
+    public List<dbSnp> getSnpBySnpName(String rsID) throws Exception{
+        String sql = "select * from db_snp where map_key=38 and source='dbSnp156' and snp_name=?";
+        List<dbSnp> snps = new ArrayList<>();
+        Connection con = null;
+        try{
+            con = gdao.getConnection();
+            PreparedStatement ps =con.prepareStatement(sql);
+            ps.setString(1,rsID);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()){
+                dbSnp snp = new dbSnp();
+                snp.setSnpName(rs.getString("SNP_NAME"));
+                snp.setSource(rs.getString("SOURCE"));
+                snp.setMapKey(rs.getInt("MAP_KEY"));
+                snp.setChromosome(rs.getString("CHROMOSOME"));
+                snp.setPosition(rs.getInt("POSITION"));
+                snp.setSnpClass(rs.getString("SNP_CLASS"));
+                snp.setMolType(rs.getString("MOL_TYPE"));
+                snp.setGenotype(rs.getString("GENOTYPE"));
+                snp.setHetType(rs.getString("HET_TYPE"));
+                snp.setAvgHetroScore(rs.getInt("AVG_HETRO_SCORE"));
+                snp.setStdErr(rs.getDouble("STD_ERROR"));
+                snp.setAllele(rs.getString("ALLELE"));
+                snp.setMafFrequency(rs.getDouble("MAF_FREQUENCY"));
+                snp.setMafSampleSized(rs.getInt("MAF_SAMPLE_SIZE"));
+                snp.setMapLocCount(rs.getInt("MAP_LOC_COUNT"));
+                snp.setMafAllele(rs.getString("MAF_ALLELE"));
+                snp.setDbSnpId(rs.getInt("DB_SNP_ID"));
+                snp.setClinicalSignificance(rs.getString("CLINICAL_SIGNIFICANCE"));
+                snp.setRefAllele(rs.getString("REF_ALLELE"));
+                snps.add(snp);
+            }
+            ps.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            con.close();
+        }
+        return snps;
     }
 }

@@ -30,7 +30,12 @@ public class Manager {
         Manager manager = (Manager) (bf.getBean("hrdpVariants"));
 
         try{
-            manager.run();
+            for (String arg : args) {
+                switch (arg) {
+                    case "-checkDbDnp" -> manager.checkDbSnp();
+                    case "-annotRun" -> manager.run();
+                }
+            }
         }catch (Exception e){
             Utils.printStackTrace(e,manager.status);
         }
@@ -214,6 +219,29 @@ public class Manager {
         }
 
         return;
+    }
+
+    void checkDbSnp()throws Exception{
+        List<GWASCatalog> gwas = dao.getGWASCatalog();
+        Logger snpSum = LogManager.getLogger("snpSummary");
+        for (GWASCatalog gc : gwas){
+            if (!gc.getSnps().startsWith("rs"))
+                continue;
+            if (gc.getSnps().contains(" x ") || gc.getSnps().contains(",") || gc.getSnps().contains("/"))
+                continue;
+            List<dbSnp> snps = dao.getSnpBySnpName(gc.getSnps());
+            if (snps.isEmpty()) {
+//                if (snps.size()>1)
+//                    System.out.println(gc.getSnps());
+////                for (dbSnp snp : snps) {
+////                    // cross check allele if more than one
+////
+////                }
+//            }
+//            else {
+                snpSum.info(gc.getSnps());
+            }
+        }
     }
 
     boolean checkAnnotationExist(int annotRgdId, String accId) throws Exception{
