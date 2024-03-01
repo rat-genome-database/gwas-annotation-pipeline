@@ -224,6 +224,7 @@ public class Manager {
     void checkDbSnp()throws Exception{
         List<GWASCatalog> gwas = dao.getGWASCatalog();
         Logger snpSum = LogManager.getLogger("snpSummary");
+        snpSum.info("GWAS SNPs not found in DB_SNP:");
         for (GWASCatalog gc : gwas){
             if (!gc.getSnps().startsWith("rs"))
                 continue;
