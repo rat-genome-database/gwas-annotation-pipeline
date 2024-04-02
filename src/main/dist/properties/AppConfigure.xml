@@ -2,7 +2,7 @@
 <beans>
     <bean id="hrdpVariants" class="edu.mcw.rgd.Manager">
         <property name="version" value="GWAS Annotation Pipeline -- ver. 1.1 -- Feb 5, 2024"/>
-        <property name="createdBy" value="75" />
+        <property name="createdBy" value="76" />
     </bean>
 
 </beans>
