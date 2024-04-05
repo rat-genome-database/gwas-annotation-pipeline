@@ -121,6 +121,10 @@ public class DAO {
         return adao.insertAnnotationsBatch(annots);
     }
 
+    public void updateQTLNameBatch(Collection<QTL> qtls) throws Exception{
+        qdao.updateQTLNameBatch(qtls);
+    }
+
     public List<Term> getQTLTraitTerms(int rgdId) throws Exception{
         List<Note> notes = new ArrayList<>();
         List<Term> traitTerms = getTermsForObject(rgdId, "V");

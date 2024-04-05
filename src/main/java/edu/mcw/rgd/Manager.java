@@ -58,7 +58,7 @@ public class Manager {
         List<GWASCatalog> gwas = dao.getGWASCatalog();
         createQtlAnnots(gwas);
         // create QTLs based on the variants, and them make annotations for them
-        status.info("Total pipeline runtime -- elapsed time: "+
+        status.info("\nTotal pipeline runtime -- elapsed time: "+
                 Utils.formatElapsedTime(time0,System.currentTimeMillis()));
 
     }
@@ -69,6 +69,7 @@ public class Manager {
         HashMap<String, List<String>> qtlToTerm = new HashMap<>(); // make sure I do not make duplicates of Annots
         List<QTL> existingQtl = new ArrayList<>();
         List<QTL> newQtls = new ArrayList<>();
+        List<QTL> updateName = new ArrayList<>();
         List<Annotation> allAnnots = new ArrayList<>();
         for (GWASCatalog gc : gwas){
             if (gc.getEfoId()==null)
@@ -91,6 +92,11 @@ public class Manager {
                 gwasQtl = dao.getQtlByRgdId(gc.getQtlRgdId());
                 qtlHashMap.put(gwasQtl.getPeakRsId() + "|" + gc.getpValMlog(), gwasQtl);
                 existingQtl.add(gwasQtl);
+                String symbolWOEnd = gwasQtl.getSymbol().replace("_H","");
+                if (!Utils.stringsAreEqual(gwasQtl.getName(),gc.getMapTrait() + " QTL:" + symbolWOEnd + " (human)")){
+                    gwasQtl.setName(gc.getMapTrait() + " QTL:" + gwasQtl.getSymbol());
+                    updateName.add(gwasQtl);
+                }
             }
             else {
                 BigDecimal pval = gc.getpVal();
@@ -106,7 +112,7 @@ public class Manager {
 
                 int qtlNum = dao.GenerateNextQTLSeqForGwas();
                 gwasQtl.setSymbol("GWAS" + qtlNum + "_H");
-                gwasQtl.setName(gc.getMapTrait() + " " + "GWAS" + qtlNum + " (human)");
+                gwasQtl.setName(gc.getMapTrait() + " QTL:" + "GWAS" + qtlNum + " (human)");
                 gwasQtl.setChromosome(gc.getChr());
                 RgdId r = dao.createRgdId(RgdId.OBJECT_KEY_QTLS, "ACTIVE", "created by GWAS annotation Pipeline", 38);
                 gwasQtl.setRgdId(r.getRgdId());
@@ -208,6 +214,10 @@ public class Manager {
         // insert annotations, qtls,update qwas
         if (!existingQtl.isEmpty())
             status.info("\tGWAS QTLs already existing: "+existingQtl.size());
+        if (!updateName.isEmpty()){
+            status.info("\tGWAS QTLs having their name updated: "+updateName.size());
+            dao.updateQTLNameBatch(updateName);
+        }
         if (!newQtls.isEmpty()) {
             status.info("\tNew QTLs being made for GWAS: "+newQtls.size());
             dao.insertQTLBatch(newQtls);
