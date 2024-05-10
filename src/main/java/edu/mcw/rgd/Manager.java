@@ -274,7 +274,7 @@ public class Manager {
                 varToTerm.computeIfAbsent(vmd.getId(), k -> new ArrayList<>());
                 List<String> terms = varToTerm.get(vmd.getId());
 
-                if (!checkAnnotationExist(rgdId, gc.getEfoId())) {
+                if (!checkAnnotationExist(rgdId, gc.getEfoId()) && !terms.contains(t.getAccId())) {
                     Annotation a = new Annotation();
                     a.setCreatedBy(getCreatedBy());
                     a.setLastModifiedBy(getCreatedBy());
