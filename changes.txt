@@ -1,3 +1,6 @@
+May 8, 2024
+Adding variant annotations for gwas
+
 February 5, 2024
 updating insert to an insertBatch
 

@@ -45,6 +45,11 @@ public class DAO {
         return adao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, "V");
     }
 
+    public List<VariantMapData> getAllActiveVariantsWithRsId(String rsId) throws Exception{
+        return vdao.getAllActiveVariantsByRsId(rsId);
+    }
+
+
     public List<Annotation> getAnnotationsModifiedBeforeTimestampForRDO(Date dt, int createdBy) throws Exception{
         return adao.getAnnotationsModifiedBeforeTimestamp(createdBy,dt,"D");
     }
