@@ -279,6 +279,7 @@ public class Manager {
                     a.setCreatedBy(getCreatedBy());
                     a.setLastModifiedBy(getCreatedBy());
                     a.setAnnotatedObjectRgdId(rgdId);
+                    a.setAspect("T");
                     a.setCreatedDate(new Date());
                     a.setLastModifiedDate(a.getLastModifiedDate());
                     a.setWithInfo("RGD:"+vmd.getId());
