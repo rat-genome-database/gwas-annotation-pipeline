@@ -28,7 +28,7 @@ public class Manager {
 
         DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
         new XmlBeanDefinitionReader(bf).loadBeanDefinitions(new FileSystemResource("properties/AppConfigure.xml"));
-        Manager manager = (Manager) (bf.getBean("hrdpVariants"));
+        Manager manager = (Manager) (bf.getBean("gwasAnnot"));
 
         try{
             manager.run(args);
@@ -258,7 +258,7 @@ public class Manager {
             if (!found)
                 continue;
 
-            int rgdId = (int)vmd.getId();
+            int rgdId = Math.toIntExact(vmd.getId());
             String[] efoIds = gc.getEfoId().split(", ");
 
             for (String eid : efoIds) {
@@ -274,7 +274,7 @@ public class Manager {
                 varToTerm.computeIfAbsent(vmd.getId(), k -> new ArrayList<>());
                 List<String> terms = varToTerm.get(vmd.getId());
 
-                if (!checkAnnotationExist(rgdId, gc.getEfoId()) && !terms.contains(t.getAccId())) {
+                if (!checkAnnotationExist(rgdId, t.getAccId()) && !terms.contains(t.getAccId())) {
                     Annotation a = new Annotation();
                     a.setCreatedBy(getCreatedBy());
                     a.setLastModifiedBy(getCreatedBy());
@@ -290,7 +290,7 @@ public class Manager {
                     a.setSpeciesTypeKey(1);
                     a.setDataSrc("GWAS_CATALOG");
                     a.setEvidence("IAGP");
-                    a.setRgdObjectKey(24);
+                    a.setRgdObjectKey(7);
                     allAnnots.add(a);
                     terms.add(t.getAccId());
                 }
@@ -326,7 +326,7 @@ public class Manager {
                             annot.setSpeciesTypeKey(1);
                             annot.setDataSrc("GWAS_CATALOG");
                             annot.setEvidence("IAGP");
-                            annot.setRgdObjectKey(24);
+                            annot.setRgdObjectKey(7);
                             allAnnots.add(annot);
                             terms.add(term.getAccId());
                         }
