@@ -166,7 +166,7 @@ public class Manager {
                     a.setSpeciesTypeKey(1);
                     a.setDataSrc("GWAS_CATALOG");
                     a.setEvidence("IAGP");
-                    a.setRgdObjectKey(6); // 6 - qtls, 24 - variants
+                    a.setRgdObjectKey(6); // 6 - qtls
                     allAnnots.add(a);
                     terms.add(t.getAccId());
                 }
@@ -282,7 +282,7 @@ public class Manager {
                     a.setAspect("T");
                     a.setCreatedDate(new Date());
                     a.setLastModifiedDate(a.getLastModifiedDate());
-                    a.setWithInfo("RGD:"+vmd.getId());
+//                    a.setWithInfo("RGD:"+vmd.getId());
                     a.setTerm(t.getTerm());
                     a.setTermAcc(t.getAccId());
 //                    a.setObjectName(vmd.getRsId());
@@ -290,7 +290,7 @@ public class Manager {
                     a.setSpeciesTypeKey(1);
                     a.setDataSrc("GWAS_CATALOG");
                     a.setEvidence("IAGP");
-                    a.setRgdObjectKey(7);
+                    a.setRgdObjectKey(7); // 7 - variants
                     allAnnots.add(a);
                     terms.add(t.getAccId());
                 }
