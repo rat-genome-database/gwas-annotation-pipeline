@@ -318,7 +318,7 @@ public class Manager {
                             annot.setAnnotatedObjectRgdId(rgdId);
                             annot.setCreatedDate(new Date());
                             annot.setLastModifiedDate(annot.getLastModifiedDate());
-                            annot.setWithInfo("RGD:" + vmd.getId());
+//                            annot.setWithInfo("RGD:" + vmd.getId());
                             annot.setTerm(term.getTerm());
                             annot.setTermAcc(term.getAccId());
 //                            annot.setObjectName(vmd.getRsId());
