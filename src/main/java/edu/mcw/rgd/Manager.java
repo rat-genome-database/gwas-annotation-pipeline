@@ -22,6 +22,7 @@ public class Manager {
     Logger status = LogManager.getLogger("status");
     DAO dao = new DAO();
     String version;
+    int refRgdId;
     int createdBy;
 
     public static void main(String[] args) throws Exception{
@@ -96,8 +97,8 @@ public class Manager {
                 qtlHashMap.put(gwasQtl.getPeakRsId() + "|" + gc.getpValMlog(), gwasQtl);
                 existingQtl.add(gwasQtl);
                 String symbolWOEnd = gwasQtl.getSymbol().replace("_H","");
-                if (!Utils.stringsAreEqual(gwasQtl.getName(),gc.getMapTrait() + " QTL:" + symbolWOEnd + " (human)")){
-                    gwasQtl.setName(gc.getMapTrait() + " QTL:" + gwasQtl.getSymbol());
+                if (!Utils.stringsAreEqual(gwasQtl.getName(),gc.getMapTrait() + " QTL " + symbolWOEnd + " (human)")){
+                    gwasQtl.setName(gc.getMapTrait() + " QTL " + gwasQtl.getSymbol() + " (human)");
                     updateName.add(gwasQtl);
                 }
             }
@@ -115,7 +116,7 @@ public class Manager {
 
                 int qtlNum = dao.GenerateNextQTLSeqForGwas();
                 gwasQtl.setSymbol("GWAS" + qtlNum + "_H");
-                gwasQtl.setName(gc.getMapTrait() + " QTL:" + "GWAS" + qtlNum + " (human)");
+                gwasQtl.setName(gc.getMapTrait() + " QTL " + "GWAS" + qtlNum + " (human)");
                 gwasQtl.setChromosome(gc.getChr());
                 RgdId r = dao.createRgdId(RgdId.OBJECT_KEY_QTLS, "ACTIVE", "created by GWAS annotation Pipeline", 38);
                 gwasQtl.setRgdId(r.getRgdId());
@@ -156,6 +157,7 @@ public class Manager {
                     a.setCreatedBy(getCreatedBy());
                     a.setLastModifiedBy(getCreatedBy());
                     a.setAnnotatedObjectRgdId(gwasQtl.getRgdId());
+                    a.setRefRgdId(refRgdId);
                     a.setAspect("T");
                     a.setCreatedDate(new Date());
                     a.setLastModifiedDate(a.getCreatedDate());
@@ -167,6 +169,7 @@ public class Manager {
                     a.setDataSrc("GWAS_CATALOG");
                     a.setEvidence("IAGP");
                     a.setRgdObjectKey(6); // 6 - qtls
+                    a.setXrefSource(gc.getPmid());
                     allAnnots.add(a);
                     terms.add(t.getAccId());
                 }
@@ -184,6 +187,10 @@ public class Manager {
                             annot.setAspect("D");
                         } else if (ts.getTermAcc().startsWith("VT")) {
                             annot.setAspect("V");
+                        } else if(ts.getTermAcc().startsWith("MP")){
+                            annot.setAspect("N");
+                        }else if(ts.getTermAcc().startsWith("HP")){
+                            annot.setAspect("H");
                         } else
                             continue;
                         Term term = dao.getTermByAccId(ts.getTermAcc());
@@ -194,6 +201,7 @@ public class Manager {
                             annot.setLastModifiedBy(getCreatedBy());
                             annot.setAnnotatedObjectRgdId(gwasQtl.getRgdId());
                             annot.setCreatedDate(new Date());
+                            annot.setRefRgdId(refRgdId);
                             annot.setLastModifiedDate(annot.getLastModifiedDate());
                             annot.setWithInfo("RGD:" + gwasQtl.getRgdId());
                             annot.setTerm(term.getTerm());
@@ -204,6 +212,7 @@ public class Manager {
                             annot.setDataSrc("GWAS_CATALOG");
                             annot.setEvidence("IAGP");
                             annot.setRgdObjectKey(6);
+                            annot.setXrefSource(gc.getPmid());
                             allAnnots.add(annot);
                             terms.add(term.getAccId());
                         }
@@ -279,6 +288,7 @@ public class Manager {
                     a.setCreatedBy(getCreatedBy());
                     a.setLastModifiedBy(getCreatedBy());
                     a.setAnnotatedObjectRgdId(rgdId);
+                    a.setRefRgdId(refRgdId);
                     a.setAspect("T");
                     a.setCreatedDate(new Date());
                     a.setLastModifiedDate(a.getLastModifiedDate());
@@ -291,6 +301,7 @@ public class Manager {
                     a.setDataSrc("GWAS_CATALOG");
                     a.setEvidence("IAGP");
                     a.setRgdObjectKey(7); // 7 - variants
+                    a.setXrefSource(gc.getPmid());
                     allAnnots.add(a);
                     terms.add(t.getAccId());
                 }
@@ -306,6 +317,10 @@ public class Manager {
                             annot.setAspect("D");
                         } else if (ts.getTermAcc().startsWith("VT")) {
                             annot.setAspect("V");
+                        } else if(ts.getTermAcc().startsWith("MP")){
+                            annot.setAspect("N");
+                        }else if(ts.getTermAcc().startsWith("HP")){
+                            annot.setAspect("H");
                         } else
                             continue;
                         Term term = dao.getTermByAccId(ts.getTermAcc());
@@ -317,6 +332,7 @@ public class Manager {
                             annot.setLastModifiedBy(getCreatedBy());
                             annot.setAnnotatedObjectRgdId(rgdId);
                             annot.setCreatedDate(new Date());
+                            annot.setRefRgdId(refRgdId);
                             annot.setLastModifiedDate(annot.getLastModifiedDate());
 //                            annot.setWithInfo("RGD:" + vmd.getId());
                             annot.setTerm(term.getTerm());
@@ -327,6 +343,7 @@ public class Manager {
                             annot.setDataSrc("GWAS_CATALOG");
                             annot.setEvidence("IAGP");
                             annot.setRgdObjectKey(7);
+                            annot.setXrefSource(gc.getPmid());
                             allAnnots.add(annot);
                             terms.add(term.getAccId());
                         }
@@ -384,5 +401,12 @@ public class Manager {
 
     public int getCreatedBy() {
         return createdBy;
+    }
+
+    public void setRefRgdId(int refRgdId) {
+        this.refRgdId = refRgdId;
+    }
+    public int getRefRgdId() {
+        return refRgdId;
     }
 }

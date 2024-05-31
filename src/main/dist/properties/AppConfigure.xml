@@ -3,6 +3,7 @@
     <bean id="gwasAnnot" class="edu.mcw.rgd.Manager">
         <property name="version" value="GWAS Annotation Pipeline -- ver. 1.2 -- April 5, 2024"/>
         <property name="createdBy" value="76" />
+        <property name="refRgdId" value="405850206"/>
     </bean>
 
 </beans>
