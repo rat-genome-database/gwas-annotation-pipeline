@@ -1,7 +1,7 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="gwasAnnot" class="edu.mcw.rgd.Manager">
-        <property name="version" value="GWAS Annotation Pipeline -- ver. 1.2 -- April 5, 2024"/>
+        <property name="version" value="GWAS Annotation Pipeline -- May 31, 2024"/>
         <property name="createdBy" value="76" />
         <property name="refRgdId" value="405850206"/>
     </bean>
