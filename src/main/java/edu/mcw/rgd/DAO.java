@@ -144,6 +144,16 @@ public class DAO {
         return traitTerms;
     }
 
+    public List<Note> getQTLNoteTraits(int rgdId) throws Exception{
+        return noteDAO.getNotes(rgdId, "qtl_trait");
+    }
+
+    public void updateNote(List<Note> notes) throws Exception{
+        for (Note n : notes){
+            noteDAO.updateNote(n);
+        }
+    }
+
     public List<Term> getQTLMeasurementTerms(QTL q) throws Exception{
         List<Note> notes = new ArrayList<>();
         List<Term> measurementTerms = getTermsForObject(q.getRgdId(),"L");

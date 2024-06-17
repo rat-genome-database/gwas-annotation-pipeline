@@ -1,6 +1,7 @@
 package edu.mcw.rgd;
 
 import edu.mcw.rgd.datamodel.GWASCatalog;
+import edu.mcw.rgd.datamodel.Note;
 import edu.mcw.rgd.datamodel.QTL;
 import edu.mcw.rgd.datamodel.RgdId;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
@@ -75,6 +76,7 @@ public class Manager {
         List<QTL> newQtls = new ArrayList<>();
         List<QTL> updateName = new ArrayList<>();
         List<Annotation> allAnnots = new ArrayList<>();
+        List<Note> allNotes = new ArrayList<>();
         for (GWASCatalog gc : gwas){
             if (gc.getEfoId()==null)
                 continue;
@@ -127,6 +129,15 @@ public class Manager {
                 qtlHashMap.put(gwasQtl.getPeakRsId() + "|" + gc.getpValMlog(), gwasQtl);
             }
 
+            List<Note> noteList = dao.getQTLNoteTraits(gwasQtl.getRgdId());
+            if (noteList.isEmpty()){
+                Note n = new Note();
+                n.setRgdId(gwasQtl.getRgdId());
+                n.setPublicYN("N");
+                n.setNotesTypeName("qtl_trait");
+                n.setNotes(gc.getMapTrait());
+                allNotes.add(n);
+            }
 //            qtlNum++; // not needed with sequence
 
             // use EFO to find term
@@ -233,6 +244,10 @@ public class Manager {
             status.info("\tNew QTLs being made for GWAS: "+newQtls.size());
             dao.insertQTLBatch(newQtls);
             dao.updateGwasQtlRgdIdBatch(gwas);
+        }
+        if (!allNotes.isEmpty()){
+            status.info("\tNotes being made for QTLs: "+allNotes.size());
+            dao.updateNote(allNotes);
         }
         if (!allAnnots.isEmpty()){
             status.info("\tAnnotations for QTLs being made: "+allAnnots.size());
