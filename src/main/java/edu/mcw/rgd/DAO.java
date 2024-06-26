@@ -24,6 +24,8 @@ public class DAO {
     QTLDAO qdao = new QTLDAO();
     NotesDAO noteDAO = new NotesDAO();
     RGDManagementDAO managementDAO = new RGDManagementDAO();
+    XdbIdDAO xdao = new XdbIdDAO();
+    private int xdbKey = XdbId.XDB_KEY_GWAS;
 
     public String getConnectionInfo() {
         return adao.getConnectionInfo();
@@ -49,9 +51,14 @@ public class DAO {
         return vdao.getAllActiveVariantsByRsId(rsId);
     }
 
-
     public List<Annotation> getAnnotationsModifiedBeforeTimestampForRDO(Date dt, int createdBy) throws Exception{
         return adao.getAnnotationsModifiedBeforeTimestamp(createdBy,dt,"D");
+    }
+    public List<XdbId> getGwasXdbs(int rgdId) throws Exception {
+        return xdao.getXdbIdsByRgdId(getXdbKey(),rgdId);
+    }
+    public int insertGwasXdbs(List<XdbId> xdbs) throws Exception{
+        return xdao.insertXdbs(xdbs);
     }
     public List<Annotation> getAnnotationsModifiedBeforeTimestamp(Date dt, int createdBy) throws Exception {
         List<Annotation> annotations = new ArrayList<>();
@@ -245,5 +252,13 @@ public class DAO {
             con.close();
         }
         return snps;
+    }
+
+    public int getXdbKey() {
+        return xdbKey;
+    }
+
+    public void setXdbKey(int xdbKey) {
+        this.xdbKey = xdbKey;
     }
 }

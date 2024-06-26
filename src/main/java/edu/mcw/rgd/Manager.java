@@ -1,9 +1,6 @@
 package edu.mcw.rgd;
 
-import edu.mcw.rgd.datamodel.GWASCatalog;
-import edu.mcw.rgd.datamodel.Note;
-import edu.mcw.rgd.datamodel.QTL;
-import edu.mcw.rgd.datamodel.RgdId;
+import edu.mcw.rgd.datamodel.*;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
@@ -77,6 +74,7 @@ public class Manager {
         List<QTL> updateName = new ArrayList<>();
         List<Annotation> allAnnots = new ArrayList<>();
         List<Note> allNotes = new ArrayList<>();
+        List<XdbId> newXdbs = new ArrayList<>();
         for (GWASCatalog gc : gwas){
             if (gc.getEfoId()==null)
                 continue;
@@ -127,6 +125,11 @@ public class Manager {
                 gc.setQtlRgdId(r.getRgdId());
                 newQtls.add(gwasQtl);
                 qtlHashMap.put(gwasQtl.getPeakRsId() + "|" + gc.getpValMlog(), gwasQtl);
+            }
+            List<XdbId> xdbs = dao.getGwasXdbs(gwasQtl.getRgdId());
+            if (xdbs.isEmpty()){
+                XdbId x = createXdb(gc, gwasQtl);
+                newXdbs.add(x);
             }
 
             List<Note> noteList = dao.getQTLNoteTraits(gwasQtl.getRgdId());
@@ -244,6 +247,11 @@ public class Manager {
             status.info("\tNew QTLs being made for GWAS: "+newQtls.size());
             dao.insertQTLBatch(newQtls);
             dao.updateGwasQtlRgdIdBatch(gwas);
+        }
+        if (!newXdbs.isEmpty())
+        {
+            status.info("\tNew XdbIds being made for QTLs: "+newXdbs.size());
+            dao.insertGwasXdbs(newXdbs);
         }
         if (!allNotes.isEmpty()){
             status.info("\tNotes being made for QTLs: "+allNotes.size());
@@ -400,6 +408,19 @@ public class Manager {
     boolean checkAnnotationExist(int annotRgdId, String accId) throws Exception{
         List<Annotation> annots = dao.getAnnotations(annotRgdId, accId, getCreatedBy());
         return !annots.isEmpty(); // if none, false
+    }
+
+    XdbId createXdb(GWASCatalog g, QTL gwasQtl) throws Exception{
+        XdbId x = new XdbId();
+        x.setAccId(g.getStudyAcc());
+        x.setLinkText(g.getStudyAcc());
+        x.setRgdId(gwasQtl.getRgdId());
+        Date date = new Date();
+        x.setCreationDate(date);
+        x.setModificationDate(date);
+        x.setSrcPipeline("GWAS Catalog");
+        x.setXdbKey(dao.getXdbKey());
+        return x;
     }
 
     public void setVersion(String version) {
