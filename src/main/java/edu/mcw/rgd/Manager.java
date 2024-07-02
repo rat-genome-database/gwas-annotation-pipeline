@@ -56,6 +56,7 @@ public class Manager {
                 case "-checkDbDnp" -> checkDbSnp();
                 case "-qtlAnnotRun" -> createQtlAnnots(gwas);
                 case "-varAnnotRun" -> createVariantAnnots(gwas);
+                case "-updateAnnots" -> updateAnnotations(gwas);
             }
         }
 
@@ -177,6 +178,7 @@ public class Manager {
                     a.setLastModifiedDate(a.getCreatedDate());
                     a.setTerm(t.getTerm());
                     a.setTermAcc(t.getAccId());
+                    a.setWithInfo(gwasQtl.getPeakRsId());
                     a.setObjectSymbol(gwasQtl.getSymbol());
                     a.setObjectName(gwasQtl.getName());
                     a.setSpeciesTypeKey(1);
@@ -217,7 +219,7 @@ public class Manager {
                             annot.setCreatedDate(new Date());
                             annot.setRefRgdId(refRgdId);
                             annot.setLastModifiedDate(annot.getLastModifiedDate());
-                            annot.setWithInfo("RGD:" + gwasQtl.getRgdId());
+                            annot.setWithInfo(gwasQtl.getPeakRsId()); // change to rsId and then deal with the rgdweb link to work with rsId
                             annot.setTerm(term.getTerm());
                             annot.setTermAcc(term.getAccId());
                             annot.setObjectName(gwasQtl.getName());
@@ -379,6 +381,33 @@ public class Manager {
             status.info("\tAnnotations being made for Variants: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
+    }
+
+    void updateAnnotations(List<GWASCatalog> gwas) throws Exception {
+        status.info("\tUpdating With Info field start");
+        List<Annotation> updateWith = new ArrayList<>();
+        List<Integer> rgdIds = new ArrayList<>();
+        for (GWASCatalog g : gwas){
+            if (g.getQtlRgdId()==0)
+                continue;
+            if (rgdIds.contains(g.getQtlRgdId()))
+                continue;
+            QTL gwasQtl = dao.getQtlByRgdId(g.getQtlRgdId());
+            List<Annotation> annots = dao.getAnnotations(gwasQtl.getRgdId());
+            for (Annotation a : annots){
+                if (a.getWithInfo()==null || a.getWithInfo().startsWith("RGD:")) {
+                    a.setWithInfo(gwasQtl.getPeakRsId());
+                    a.setLastModifiedBy(getCreatedBy());
+                    updateWith.add(a);
+                }
+            }
+            rgdIds.add(gwasQtl.getRgdId());
+        }
+        if (!updateWith.isEmpty()){
+            status.info("\t\tAnnotations being updated: " + updateWith.size());
+            dao.updateAnnotations(updateWith);
+        }
+        status.info("\tUpdating With Info field end");
     }
 
     void checkDbSnp()throws Exception{

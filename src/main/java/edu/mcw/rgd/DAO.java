@@ -35,6 +35,10 @@ public class DAO {
         return adao.getAnnotations(annotatedObjectRGDId, termAcc, createdBy);
     }
 
+    public List<Annotation> getAnnotations(int rgdId) throws Exception{
+        return adao.getAnnotations(rgdId);
+    }
+
     public List<Annotation> getAnnotationsModifiedBeforeTimestampForEFO(Date dt, int createdBy) throws Exception{
         return adao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, "T");
     }
@@ -135,6 +139,10 @@ public class DAO {
 
     public void updateQTLNameBatch(Collection<QTL> qtls) throws Exception{
         qdao.updateQTLNameBatch(qtls);
+    }
+
+    public int updateAnnotations(List<Annotation> annots) throws Exception{
+        return adao.updateAnnotationBatch(annots);
     }
 
     public List<Term> getQTLTraitTerms(int rgdId) throws Exception{
