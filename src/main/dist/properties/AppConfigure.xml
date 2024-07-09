@@ -4,6 +4,7 @@
         <property name="version" value="GWAS Annotation Pipeline -- May 31, 2024"/>
         <property name="createdBy" value="76" />
         <property name="refRgdId" value="405850206"/>
+        <property name="refKey" value="138654"/>
     </bean>
 
 </beans>

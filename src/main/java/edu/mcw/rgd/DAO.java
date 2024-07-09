@@ -18,6 +18,7 @@ import java.util.*;
 public class DAO {
 
     AnnotationDAO adao = new AnnotationDAO();
+    AssociationDAO associationDAO = new AssociationDAO();
     GWASCatalogDAO gdao = new GWASCatalogDAO();
     OntologyXDAO odao = new OntologyXDAO();
     VariantDAO vdao = new VariantDAO();
@@ -63,6 +64,14 @@ public class DAO {
     }
     public int insertGwasXdbs(List<XdbId> xdbs) throws Exception{
         return xdao.insertXdbs(xdbs);
+    }
+    public void insertRgdRefRgd(int refKey, List<Integer> qtlIds) throws Exception{
+        for (int rgdId : qtlIds){
+            associationDAO.insertReferenceAssociationByKey(refKey, rgdId);
+        }
+    }
+    public List<Reference> getReferenceAssociations(int rgdId) throws Exception{
+        return associationDAO.getReferenceAssociations(rgdId);
     }
     public List<Annotation> getAnnotationsModifiedBeforeTimestamp(Date dt, int createdBy) throws Exception {
         List<Annotation> annotations = new ArrayList<>();

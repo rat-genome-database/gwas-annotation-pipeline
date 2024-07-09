@@ -22,6 +22,7 @@ public class Manager {
     String version;
     int refRgdId;
     int createdBy;
+    int refKey;
 
     public static void main(String[] args) throws Exception{
 
@@ -76,6 +77,7 @@ public class Manager {
         List<Annotation> allAnnots = new ArrayList<>();
         List<Note> allNotes = new ArrayList<>();
         List<XdbId> newXdbs = new ArrayList<>();
+        List<Integer> qtlRgdIds = new ArrayList<>();
         for (GWASCatalog gc : gwas){
             if (gc.getEfoId()==null)
                 continue;
@@ -125,6 +127,7 @@ public class Manager {
                 gwasQtl.setPeakRsId(gc.getSnps());
                 gc.setQtlRgdId(r.getRgdId());
                 newQtls.add(gwasQtl);
+                qtlRgdIds.add(r.getRgdId());
                 qtlHashMap.put(gwasQtl.getPeakRsId() + "|" + gc.getpValMlog(), gwasQtl);
             }
             List<XdbId> xdbs = dao.getGwasXdbs(gwasQtl.getRgdId());
@@ -236,6 +239,9 @@ public class Manager {
                 }
                 qtlToTerm.put(gwasQtl.getSymbol(), terms);
             }
+            if (!qtlRgdIds.contains(gwasQtl.getRgdId()) && !checkRefAssocExist(gwasQtl.getRgdId())){
+                qtlRgdIds.add(gwasQtl.getRgdId());
+            }
         }
 
         // insert annotations, qtls,update qwas
@@ -263,8 +269,20 @@ public class Manager {
             status.info("\tAnnotations for QTLs being made: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
-
+        if (!qtlRgdIds.isEmpty()){
+            status.info("\tNew rgd_ref_rgd objects being made: " + qtlRgdIds.size());
+            dao.insertRgdRefRgd(refKey,qtlRgdIds);
+        }
         return;
+    }
+
+    boolean checkRefAssocExist(int rgdId) throws Exception {
+        List<Reference> refs = dao.getReferenceAssociations(rgdId);
+        for (Reference ref : refs){
+            if (ref.getKey()==refKey)
+                return true;
+        }
+        return false;
     }
 
     void createVariantAnnots(List<GWASCatalog> catalog) throws Exception{
@@ -473,5 +491,12 @@ public class Manager {
     }
     public int getRefRgdId() {
         return refRgdId;
+    }
+
+    public void setRefKey(int refKey) {
+        this.refKey = refKey;
+    }
+    public int getRefKey(){
+        return refKey;
     }
 }
