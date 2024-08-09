@@ -206,9 +206,7 @@ public class Manager {
                             annot.setAspect("D");
                         } else if (ts.getTermAcc().startsWith("VT")) {
                             annot.setAspect("V");
-                        } else if(ts.getTermAcc().startsWith("MP")){
-                            annot.setAspect("N");
-                        }else if(ts.getTermAcc().startsWith("HP")){
+                        } else if(ts.getTermAcc().startsWith("HP")){
                             annot.setAspect("H");
                         } else
                             continue;
@@ -360,9 +358,7 @@ public class Manager {
                             annot.setAspect("D");
                         } else if (ts.getTermAcc().startsWith("VT")) {
                             annot.setAspect("V");
-                        } else if(ts.getTermAcc().startsWith("MP")){
-                            annot.setAspect("N");
-                        }else if(ts.getTermAcc().startsWith("HP")){
+                        } else if(ts.getTermAcc().startsWith("HP")){
                             annot.setAspect("H");
                         } else
                             continue;
