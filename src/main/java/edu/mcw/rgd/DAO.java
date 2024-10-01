@@ -154,6 +154,22 @@ public class DAO {
         return adao.updateAnnotationBatch(annots);
     }
 
+    public int updateLastModifiedAnnots(List<Annotation> annots) throws Exception{
+        List<Integer> annotKeys = new ArrayList<>();
+        for (Annotation a : annots){
+            annotKeys.add(a.getKey());
+        }
+        return adao.updateLastModified(annotKeys);
+    }
+
+    public void deleteAnnotations(List<Annotation> annots) throws Exception{
+        List<Integer> keys = new ArrayList<>();
+        for (Annotation a : annots){
+            keys.add(a.getKey());
+        }
+        adao.deleteAnnotations(keys);
+    }
+
     public List<Term> getQTLTraitTerms(int rgdId) throws Exception{
         List<Note> notes = new ArrayList<>();
         List<Term> traitTerms = getTermsForObject(rgdId, "V");
@@ -231,13 +247,11 @@ public class DAO {
     public List<dbSnp> getSnpBySnpName(String rsID) throws Exception{
         String sql = "select * from db_snp where map_key=38 and source='dbSnp156' and snp_name=?";
         List<dbSnp> snps = new ArrayList<>();
-        Connection con = null;
-        try{
-            con = gdao.getConnection();
-            PreparedStatement ps =con.prepareStatement(sql);
-            ps.setString(1,rsID);
+        try (Connection con = gdao.getConnection()) {
+            PreparedStatement ps = con.prepareStatement(sql);
+            ps.setString(1, rsID);
             ResultSet rs = ps.executeQuery();
-            while (rs.next()){
+            while (rs.next()) {
                 dbSnp snp = new dbSnp();
                 snp.setSnpName(rs.getString("SNP_NAME"));
                 snp.setSource(rs.getString("SOURCE"));
@@ -261,12 +275,8 @@ public class DAO {
                 snps.add(snp);
             }
             ps.close();
-        }
-        catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-        }
-        finally {
-            con.close();
         }
         return snps;
     }

@@ -1,3 +1,7 @@
+9/30/2024
+Adding note to annotations that are based off EFO term
+Updating last modified date for annotations and deleting obsolete annotations
+
 May 8, 2024
 Adding variant annotations for gwas
 
