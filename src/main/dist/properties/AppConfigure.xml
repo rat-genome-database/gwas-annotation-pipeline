@@ -5,6 +5,7 @@
         <property name="createdBy" value="76" />
         <property name="refRgdId" value="405850206"/>
         <property name="refKey" value="138654"/>
+        <property name="deleteThresholdForStaleAnnotations" value="10%"/>
     </bean>
 
 </beans>

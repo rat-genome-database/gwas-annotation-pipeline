@@ -288,4 +288,12 @@ public class DAO {
     public void setXdbKey(int xdbKey) {
         this.xdbKey = xdbKey;
     }
+
+    public int getCountOfAnnotationsByReference(int refRgdId, String dataSource, String aspect) throws Exception{
+        return adao.getCountOfAnnotationsByReference(refRgdId,dataSource,aspect);
+    }
+
+    public List<Annotation> getAnnotationsModifiedBeforeTimestamp(int createdBy, Date dt, String aspect) throws Exception{
+        return adao.getAnnotationsModifiedBeforeTimestamp(createdBy,dt,aspect);
+    }
 }

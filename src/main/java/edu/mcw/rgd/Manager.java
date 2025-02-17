@@ -18,11 +18,14 @@ import java.util.*;
 
 public class Manager {
     Logger status = LogManager.getLogger("status");
+    Logger logStatus = LogManager.getLogger("deleteAnnots");
+    Logger obsoleteEfo = LogManager.getLogger("obsoleteEfo");
     DAO dao = new DAO();
     String version;
     int refRgdId;
     int createdBy;
     int refKey;
+    String deleteThresholdForStaleAnnotations;
 
     public static void main(String[] args) throws Exception{
 
@@ -58,6 +61,7 @@ public class Manager {
                 case "-qtlAnnotRun" -> createQtlAnnots(gwas);
                 case "-varAnnotRun" -> createVariantAnnots(gwas);
                 case "-updateAnnots" -> updateAnnotations(gwas);
+                case "-removeStaleAnnots" -> removeStaleAnnots();
             }
         }
 
@@ -430,6 +434,23 @@ public class Manager {
         }
     }
 
+    void removeStaleAnnots()throws Exception{
+        Date date0 = new Date();
+        long time0 = System.currentTimeMillis();
+        logStatus.info("   "+dao.getConnectionInfo());
+
+        SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
+
+        Date dtStart = Utils.addDaysToDate(new Date(), -2);
+        String[] aspects = {"T","L","D","V","H"};
+        for (String aspect : aspects) {
+            deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), "GWAS_CATALOG",aspect);
+        }
+        logStatus.info("\nTotal pipeline runtime -- elapsed time: "+
+                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
+    }
+
     void updateAnnotations(List<GWASCatalog> gwas) throws Exception {
         status.info("\tUpdating With Info field start");
         List<Annotation> updateWith = new ArrayList<>();
@@ -502,7 +523,7 @@ public class Manager {
         }
         if (efo != null && efo.isObsolete() && !annots.isEmpty()){
             for (Annotation a : annots) {
-                status.info("Annotation Based on Obsolete EFO:\n" + a.dump("|"));
+                obsoleteEfo.info("Annotation Based on Obsolete EFO:\n" + a.dump("|"));
             }
         }
         if (!annots.isEmpty()){
@@ -510,6 +531,36 @@ public class Manager {
             return true;
         }
         return false; // if none, false
+    }
+
+    int deleteObsoleteAnnotations(int createdBy, Date dt, String staleAnnotDeleteThresholdStr, int refRgdId, String dataSource, String aspect) throws Exception{
+
+        // convert delete-threshold string to number; i.e. '5%' --> '5'
+        int staleAnnotDeleteThresholdPerc = Integer.parseInt(staleAnnotDeleteThresholdStr.substring(0, staleAnnotDeleteThresholdStr.length()-1));
+        // compute maximum allowed number of stale annots to be deleted
+        int annotCount = dao.getCountOfAnnotationsByReference(refRgdId, dataSource, aspect);
+        int staleAnnotDeleteLimit = (staleAnnotDeleteThresholdPerc * annotCount) / 100;
+
+        List<Annotation> staleAnnots = dao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, aspect);
+
+        logStatus.info("ANNOTATIONS_COUNT: "+annotCount);
+        if( staleAnnots.size()> 0 ) {
+            logStatus.info("   stale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
+            logStatus.info("   stale annotations to be deleted: " + staleAnnots.size());
+        }
+
+        if( staleAnnots.size()> staleAnnotDeleteLimit ) {
+            logStatus.warn("*** DELETE of stale annots aborted! *** "+staleAnnotDeleteThresholdStr+" delete threshold exceeded!");
+            return 0;
+        }
+
+//        List<Integer> staleAnnotKeys = new ArrayList<>();
+//        for( Annotation ann: staleAnnots ) {
+////            logAnnotsDeleted.debug("DELETE "+ann.dump("|"));
+//            staleAnnotKeys.add(ann.getKey());
+//        }
+        dao.deleteAnnotations(staleAnnots);
+        return staleAnnots.size();
     }
 
     XdbId createXdb(GWASCatalog g, QTL gwasQtl) throws Exception{
@@ -553,5 +604,13 @@ public class Manager {
     }
     public int getRefKey(){
         return refKey;
+    }
+
+    public void setDeleteThresholdForStaleAnnotations(String deleteThresholdForStaleAnnotations) {
+        this.deleteThresholdForStaleAnnotations = deleteThresholdForStaleAnnotations;
+    }
+
+    public String getDeleteThresholdForStaleAnnotations() {
+        return deleteThresholdForStaleAnnotations;
     }
 }
