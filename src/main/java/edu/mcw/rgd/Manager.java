@@ -73,6 +73,7 @@ public class Manager {
 
     void createQtlAnnots(List<GWASCatalog> gwas) throws Exception{
 //        int qtlNum = 1;
+        status.info("\tStarting run for GWAS QTLs");
         HashMap<String, QTL> qtlHashMap = new HashMap<>(); // rsId + PVal is key to help prevent creating duplicates
         HashMap<String, List<String>> qtlToTerm = new HashMap<>(); // make sure I do not make duplicates of Annots
         List<QTL> existingQtl = new ArrayList<>();
@@ -291,6 +292,7 @@ public class Manager {
             status.info("\tNew rgd_ref_rgd objects being made: " + qtlRgdIds.size());
             dao.insertRgdRefRgd(refKey,qtlRgdIds);
         }
+        status.info("\tEnding run for GWAS QTLs");
         return;
     }
 
@@ -304,6 +306,7 @@ public class Manager {
     }
 
     void createVariantAnnots(List<GWASCatalog> catalog) throws Exception{
+        status.info("\tStarting run for GWAS Variants");
         HashMap<Long,List<String>> varToTerm = new HashMap<>();
         List<Annotation> allAnnots = new ArrayList<>();
         for (GWASCatalog gc : catalog) {
@@ -432,6 +435,7 @@ public class Manager {
             status.info("\tAnnotations being made for Variants: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
+        status.info("\tEnding run for GWAS Variants");
     }
 
     void removeStaleAnnots()throws Exception{
