@@ -18,11 +18,14 @@ import java.util.*;
 
 public class Manager {
     Logger status = LogManager.getLogger("status");
+    Logger logStatus = LogManager.getLogger("deleteAnnots");
+    Logger obsoleteEfo = LogManager.getLogger("obsoleteEfo");
     DAO dao = new DAO();
     String version;
     int refRgdId;
     int createdBy;
     int refKey;
+    String deleteThresholdForStaleAnnotations;
 
     public static void main(String[] args) throws Exception{
 
@@ -58,6 +61,7 @@ public class Manager {
                 case "-qtlAnnotRun" -> createQtlAnnots(gwas);
                 case "-varAnnotRun" -> createVariantAnnots(gwas);
                 case "-updateAnnots" -> updateAnnotations(gwas);
+                case "-removeStaleAnnots" -> removeStaleAnnots();
             }
         }
 
@@ -69,6 +73,7 @@ public class Manager {
 
     void createQtlAnnots(List<GWASCatalog> gwas) throws Exception{
 //        int qtlNum = 1;
+        status.info("\tStarting run for GWAS QTLs");
         HashMap<String, QTL> qtlHashMap = new HashMap<>(); // rsId + PVal is key to help prevent creating duplicates
         HashMap<String, List<String>> qtlToTerm = new HashMap<>(); // make sure I do not make duplicates of Annots
         List<QTL> existingQtl = new ArrayList<>();
@@ -159,17 +164,31 @@ public class Manager {
             for (String eId : efoIds) {
                 Term t = new Term();
                 String efoId = eId.replace("_", ":");
-                if (!efoId.startsWith("EFO"))
+                if (!efoId.startsWith("EFO") && !efoId.startsWith("MONDO") && !efoId.startsWith("GO") && !efoId.startsWith("HP"))
                     efoId = "EFO:" + efoId;
                 t = dao.getTermByAccId(efoId);
-                if (t == null) { // figure why it is null
-                    continue;
+                if (t == null && !efoId.startsWith("MONDO")) { // figure why it is null
+                    status.info("\tOnt Term not found: "+efoId);
+                    efoId = "EFO:" + efoId;
+                    t = dao.getTermByAccId(efoId);
+                    if (t==null)
+                        continue;
                 }
-
+                String notes = "";
+                if (efoId.startsWith("EFO"))
+                    notes = "Based on the EFO term ID";
+                else if (efoId.startsWith("MONDO"))
+                    notes = "Based on the MONDO term ID from GWAS";
+                else if (efoId.startsWith("GO"))
+                    notes = "Based on the GO term ID from GWAS";
+                else if (efoId.startsWith("HP"))
+                    notes = "Based on the HP term ID from GWAS";
+                else
+                    notes = "Based on the EFO term ID";
                 qtlToTerm.computeIfAbsent(gwasQtl.getSymbol(), k -> new ArrayList<>());
                 List<String> terms = qtlToTerm.get(gwasQtl.getSymbol());
 
-                if (!checkAnnotationExist(gwasQtl.getRgdId(), efoId) && !terms.contains(t.getAccId())) // does not exist
+                if (t != null && !checkAnnotationExist(gwasQtl.getRgdId(), t) && !terms.contains(t.getAccId())) // does not exist
                 {
                     Annotation a = new Annotation();
                     a.setCreatedBy(getCreatedBy());
@@ -193,9 +212,7 @@ public class Manager {
                     terms.add(t.getAccId());
                 }
 
-                // get TermSynonym by EFO acc
-
-                List<TermSynonym> synonyms = dao.getTermSynonymsBySynonymName(t.getAccId());
+                List<TermSynonym> synonyms = dao.getTermSynonymsBySynonymName(efoId);
                 if (synonyms != null && !synonyms.isEmpty()) {
                     // loop through and check if they match above Aspects
                     for (TermSynonym ts : synonyms) {
@@ -206,14 +223,16 @@ public class Manager {
                             annot.setAspect("D");
                         } else if (ts.getTermAcc().startsWith("VT")) {
                             annot.setAspect("V");
-                        } else if(ts.getTermAcc().startsWith("HP")){
+                        } else if (ts.getTermAcc().startsWith("HP")) {
                             annot.setAspect("H");
                         } else
                             continue;
                         Term term = dao.getTermByAccId(ts.getTermAcc());
                         if (term == null)
                             continue;
-                        if (!checkAnnotationExist(gwasQtl.getRgdId(), term.getAccId()) && !terms.contains(term.getAccId())) {
+                        if (term.isObsolete())
+                            continue;
+                        if (!checkAnnotationExistWithEFO(gwasQtl.getRgdId(), term, t) && !terms.contains(term.getAccId())) {
                             annot.setCreatedBy(getCreatedBy());
                             annot.setLastModifiedBy(getCreatedBy());
                             annot.setAnnotatedObjectRgdId(gwasQtl.getRgdId());
@@ -230,11 +249,13 @@ public class Manager {
                             annot.setEvidence("IAGP");
                             annot.setRgdObjectKey(6);
                             annot.setXrefSource(gc.getPmid());
+                            annot.setNotes(notes);
                             allAnnots.add(annot);
                             terms.add(term.getAccId());
                         }
                     } // end synonym for
                 }
+
                 qtlToTerm.put(gwasQtl.getSymbol(), terms);
             }
             if (!qtlRgdIds.contains(gwasQtl.getRgdId()) && !checkRefAssocExist(gwasQtl.getRgdId())){
@@ -271,6 +292,7 @@ public class Manager {
             status.info("\tNew rgd_ref_rgd objects being made: " + qtlRgdIds.size());
             dao.insertRgdRefRgd(refKey,qtlRgdIds);
         }
+        status.info("\tEnding run for GWAS QTLs");
         return;
     }
 
@@ -284,6 +306,7 @@ public class Manager {
     }
 
     void createVariantAnnots(List<GWASCatalog> catalog) throws Exception{
+        status.info("\tStarting run for GWAS Variants");
         HashMap<Long,List<String>> varToTerm = new HashMap<>();
         List<Annotation> allAnnots = new ArrayList<>();
         for (GWASCatalog gc : catalog) {
@@ -314,17 +337,32 @@ public class Manager {
             for (String eid : efoIds) {
                 Term t = new Term();
                 String efoId =  eid.replace("_", ":");
-                if (!efoId.startsWith("EFO"))
+                if (!efoId.startsWith("EFO") && !efoId.startsWith("MONDO") && !efoId.startsWith("GO") && !efoId.startsWith("HP"))
                     efoId = "EFO:" + efoId;
                 t = dao.getTermByAccId(efoId);
                 if (t == null) { // figure why it is null
-                    continue;
+                    status.info("\tOnt Term not found: "+efoId);
+                    efoId = "EFO:" + efoId;
+                    t = dao.getTermByAccId(efoId);
+                    if (t==null)
+                        continue;
                 }
+                String notes = "";
+                if (t.getAccId().startsWith("EFO"))
+                    notes = "Based on the EFO term ID";
+                else if (t.getAccId().startsWith("MONDO"))
+                    notes = "Based on the MONDO term ID from GWAS";
+                else if (t.getAccId().startsWith("GO"))
+                    notes = "Based on the GO term ID from GWAS";
+                else if (t.getAccId().startsWith("HP"))
+                    notes = "Based on the HP term ID from GWAS";
+                else
+                    notes = "Based on the EFO term ID";
 
                 varToTerm.computeIfAbsent(vmd.getId(), k -> new ArrayList<>());
                 List<String> terms = varToTerm.get(vmd.getId());
 
-                if (!checkAnnotationExist(rgdId, t.getAccId()) && !terms.contains(t.getAccId())) {
+                if (!checkAnnotationExist(rgdId, t) && !terms.contains(t.getAccId())) {
                     Annotation a = new Annotation();
                     a.setCreatedBy(getCreatedBy());
                     a.setLastModifiedBy(getCreatedBy());
@@ -365,8 +403,9 @@ public class Manager {
                         Term term = dao.getTermByAccId(ts.getTermAcc());
                         if (term == null)
                             continue;
-
-                        if (!checkAnnotationExist(rgdId, term.getAccId()) && !terms.contains(term.getAccId())) {
+                        if (term.isObsolete())
+                            continue;
+                        if (!checkAnnotationExistWithEFO(rgdId, term, t) && !terms.contains(term.getAccId())) {
                             annot.setCreatedBy(getCreatedBy());
                             annot.setLastModifiedBy(getCreatedBy());
                             annot.setAnnotatedObjectRgdId(rgdId);
@@ -383,6 +422,7 @@ public class Manager {
                             annot.setEvidence("IAGP");
                             annot.setRgdObjectKey(7);
                             annot.setXrefSource(gc.getPmid());
+                            annot.setNotes(notes);
                             allAnnots.add(annot);
                             terms.add(term.getAccId());
                         }
@@ -395,6 +435,24 @@ public class Manager {
             status.info("\tAnnotations being made for Variants: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
+        status.info("\tEnding run for GWAS Variants");
+    }
+
+    void removeStaleAnnots()throws Exception{
+        Date date0 = new Date();
+        long time0 = System.currentTimeMillis();
+        logStatus.info("   "+dao.getConnectionInfo());
+
+        SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
+
+        Date dtStart = Utils.addDaysToDate(new Date(), -2);
+        String[] aspects = {"T","L","D","V","H"};
+        for (String aspect : aspects) {
+            deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), "GWAS_CATALOG",aspect);
+        }
+        logStatus.info("\nTotal pipeline runtime -- elapsed time: "+
+                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
     void updateAnnotations(List<GWASCatalog> gwas) throws Exception {
@@ -448,9 +506,65 @@ public class Manager {
         }
     }
 
-    boolean checkAnnotationExist(int annotRgdId, String accId) throws Exception{
-        List<Annotation> annots = dao.getAnnotations(annotRgdId, accId, getCreatedBy());
+    boolean checkAnnotationExist(int annotRgdId, Term term) throws Exception{
+        List<Annotation> annots = dao.getAnnotations(annotRgdId, term.getAccId(), getCreatedBy());
+        if (term.isObsolete()){
+            dao.deleteAnnotations(annots);
+            return term.isObsolete();
+        }
+        if (!annots.isEmpty()){
+            // update last modified data
+            dao.updateLastModifiedAnnots(annots);
+        }
         return !annots.isEmpty(); // if none, false
+    }
+
+    boolean checkAnnotationExistWithEFO(int annotRgdId, Term term, Term efo) throws Exception{
+        List<Annotation> annots = dao.getAnnotations(annotRgdId, term.getAccId(), getCreatedBy());
+        if (term.isObsolete()){
+            dao.deleteAnnotations(annots);
+            return term.isObsolete();
+        }
+        if (efo != null && efo.isObsolete() && !annots.isEmpty()){
+            for (Annotation a : annots) {
+                obsoleteEfo.info("Annotation Based on Obsolete EFO:\n" + a.dump("|"));
+            }
+        }
+        if (!annots.isEmpty()){
+            dao.updateLastModifiedAnnots(annots);
+            return true;
+        }
+        return false; // if none, false
+    }
+
+    int deleteObsoleteAnnotations(int createdBy, Date dt, String staleAnnotDeleteThresholdStr, int refRgdId, String dataSource, String aspect) throws Exception{
+
+        // convert delete-threshold string to number; i.e. '5%' --> '5'
+        int staleAnnotDeleteThresholdPerc = Integer.parseInt(staleAnnotDeleteThresholdStr.substring(0, staleAnnotDeleteThresholdStr.length()-1));
+        // compute maximum allowed number of stale annots to be deleted
+        int annotCount = dao.getCountOfAnnotationsByReference(refRgdId, dataSource, aspect);
+        int staleAnnotDeleteLimit = (staleAnnotDeleteThresholdPerc * annotCount) / 100;
+
+        List<Annotation> staleAnnots = dao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, aspect);
+
+        logStatus.info("ANNOTATIONS_COUNT: "+annotCount);
+        if( staleAnnots.size()> 0 ) {
+            logStatus.info("   stale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
+            logStatus.info("   stale annotations to be deleted: " + staleAnnots.size());
+        }
+
+        if( staleAnnots.size()> staleAnnotDeleteLimit ) {
+            logStatus.warn("*** DELETE of stale annots aborted! *** "+staleAnnotDeleteThresholdStr+" delete threshold exceeded!");
+            return 0;
+        }
+
+//        List<Integer> staleAnnotKeys = new ArrayList<>();
+//        for( Annotation ann: staleAnnots ) {
+////            logAnnotsDeleted.debug("DELETE "+ann.dump("|"));
+//            staleAnnotKeys.add(ann.getKey());
+//        }
+        dao.deleteAnnotations(staleAnnots);
+        return staleAnnots.size();
     }
 
     XdbId createXdb(GWASCatalog g, QTL gwasQtl) throws Exception{
@@ -494,5 +608,13 @@ public class Manager {
     }
     public int getRefKey(){
         return refKey;
+    }
+
+    public void setDeleteThresholdForStaleAnnotations(String deleteThresholdForStaleAnnotations) {
+        this.deleteThresholdForStaleAnnotations = deleteThresholdForStaleAnnotations;
+    }
+
+    public String getDeleteThresholdForStaleAnnotations() {
+        return deleteThresholdForStaleAnnotations;
     }
 }

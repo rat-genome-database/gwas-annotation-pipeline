@@ -20,10 +20,40 @@
         <File name="summary" append="false" fileName="logs/summary.log">
             <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
         </File>
+        <RollingFile name="delAnnotDetail" append="true" fileName="logs/delAnnotDetail.log" filePattern="logs/delAnnotDetail.log.%d{yyyy-MM}">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/><!-- 1 month roll over -->
+            </Policies>
+        </RollingFile>
+        <RollingFile name="delAnnotStatus" append="true" fileName="logs/delAnnotStatus.log" filePattern="logs/delAnnotStatus.log.%d{yyyy-MM}">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <File name="delAnnotSummary" append="false" fileName="logs/delAnnotSummary.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </File>
         <File name="snpSummary" append="false" fileName="logs/snpSummary.log">
             <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
         </File>
 
+        <RollingFile name="obsoleteEfoDetail" append="true" fileName="logs/obsoleteEfoDetail.log" filePattern="logs/obsoleteEfoDetail.log.%d{yyyy-MM}">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/><!-- 1 month roll over -->
+            </Policies>
+        </RollingFile>
+        <RollingFile name="obsoleteEfoStatus" append="true" fileName="logs/obsoleteEfoStatus.log" filePattern="logs/obsoleteEfoStatus.log.%d{yyyy-MM}">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <File name="obsoleteEfoSummary" append="false" fileName="logs/obsoleteEfoSummary.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </File>
     </Appenders>
 
     <Loggers>
@@ -34,6 +64,18 @@
             <AppenderRef ref="detail"/>
             <AppenderRef ref="status" level="info"/>
             <AppenderRef ref="summary" level="info"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="deleteAnnots" level="debug" additivity="false">
+            <AppenderRef ref="delAnnotDetail"/>
+            <AppenderRef ref="delAnnotStatus" level="info"/>
+            <AppenderRef ref="delAnnotSummary" level="info"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="obsoleteEfo" level="debug" additivity="false">
+            <AppenderRef ref="obsoleteEfoDetail"/>
+            <AppenderRef ref="obsoleteEfoStatus" level="info"/>
+            <AppenderRef ref="obsoleteEfoSummary" level="info"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
     </Loggers>
