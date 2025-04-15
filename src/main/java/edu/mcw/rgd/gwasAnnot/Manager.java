@@ -46,6 +46,10 @@ public class Manager {
                         RatAnnot ra = (RatAnnot) (bf.getBean("ratAnnot"));
                         ra.run();
                         break;
+                    case "-removeStaleRatAnnots":
+                        RatAnnot ra1 = (RatAnnot) (bf.getBean("ratAnnot"));
+                        ra1.removeStaleAnnots();
+                        break;
                 }
             }
         }catch (Exception e){
