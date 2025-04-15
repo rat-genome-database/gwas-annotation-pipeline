@@ -1,4 +1,4 @@
-package edu.mcw.rgd;
+package edu.mcw.rgd.gwasAnnot;
 
 import edu.mcw.rgd.datamodel.GWASCatalog;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
