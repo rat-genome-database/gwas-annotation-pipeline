@@ -51,6 +51,7 @@ public class RatAnnot {
         List<Annotation> allAnnots = new ArrayList<>();
         List<XdbId> newXdbs = new ArrayList<>();
         List<Integer> qtlRgdIds = new ArrayList<>();
+        List<GWASCatalog> update = new ArrayList<>();
 
         for (GWASCatalog g : gwas){
             QTL gwasQtl = new QTL();
@@ -78,9 +79,14 @@ public class RatAnnot {
                 gwasQtl.setPeakRsId(g.getSnps());
 
                 g.setQtlRgdId(r.getRgdId());
+                update.add(g);
                 newQtls.add(gwasQtl);
                 qtlRgdIds.add(r.getRgdId());
                 qtlHashMap.put(g.getSnps()+"|"+g.getpVal(), gwasQtl);
+            }
+            if (g.getQtlRgdId()==null || g.getQtlRgdId()==0){
+                g.setQtlRgdId(gwasQtl.getRgdId());
+                update.add(g);
             }
 //            List<XdbId> xdbs = dao.getGwasXdbs(gwasQtl.getRgdId());
 //            if (xdbs.isEmpty()){
@@ -135,7 +141,11 @@ public class RatAnnot {
         if (!newQtls.isEmpty()) {
             status.info("\tNew QTLs being made for GWAS: "+newQtls.size());
             dao.insertQTLBatch(newQtls);
-            dao.updateGwasQtlRgdIdBatch(gwas);
+        }
+        if (!update.isEmpty())
+        {
+            status.info("\tUpdating GWAS objects: " + update.size());
+            dao.updateGwasQtlRgdIdBatch(update);
         }
 //        if (!newXdbs.isEmpty())
 //        {
