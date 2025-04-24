@@ -121,13 +121,13 @@ public class RatAnnot {
                     a.setRgdObjectKey(6); // 6 - qtls
 //                    a.setXrefSource(g.getPmid());
                     // copy annot and create for variant
-                    Annotation varAnnot = a;
-                    varAnnot.setObjectSymbol(g.getSnps());
-                    varAnnot.setObjectName(null);
-                    varAnnot.setAnnotatedObjectRgdId(g.getVariantRgdId());
-                    varAnnot.setRgdObjectKey(7);
                     allAnnots.add(a);
-                    allAnnots.add(varAnnot);
+
+                    a.setObjectSymbol(g.getSnps());
+                    a.setObjectName(null);
+                    a.setAnnotatedObjectRgdId(g.getVariantRgdId());
+                    a.setRgdObjectKey(7);
+                    allAnnots.add(a);
 //                    terms.add(t.getAccId());
                 }
             }
@@ -153,7 +153,7 @@ public class RatAnnot {
 //            dao.insertGwasXdbs(newXdbs);
 //        }
         if (!allAnnots.isEmpty()){
-            status.info("\tAnnotations for QTLs being made: "+allAnnots.size());
+            status.info("\tAnnotations for QTLs and Variants being made: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
         if (!qtlRgdIds.isEmpty()){
