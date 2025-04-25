@@ -34,7 +34,7 @@ public class RatAnnot {
         status.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
         List<GWASCatalog> gwas = dao.getGWASByMapKey(372);
         try {
-            runQTLAnnot(gwas);
+            runAnnot(gwas);
         }
         catch (Exception e){
             Utils.printStackTrace(e,status);
@@ -43,15 +43,15 @@ public class RatAnnot {
                 Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
-    void runQTLAnnot(List<GWASCatalog> gwas) throws Exception {
+    void runAnnot(List<GWASCatalog> gwas) throws Exception {
         HashMap<String, QTL> qtlHashMap = new HashMap<>(); // rsId + PVal is key to help prevent creating duplicates
-        HashMap<String, List<String>> qtlToTerm = new HashMap<>(); // make sure I do not make duplicates of Annots
         List<QTL> existingQtl = new ArrayList<>();
         List<QTL> newQtls = new ArrayList<>();
         List<Annotation> allAnnots = new ArrayList<>();
         List<XdbId> newXdbs = new ArrayList<>();
         List<Integer> qtlRgdIds = new ArrayList<>();
         List<GWASCatalog> update = new ArrayList<>();
+        HashMap<Integer, List<String>> rgdToTerm = new HashMap<>();
 
         for (GWASCatalog g : gwas){
             QTL gwasQtl = new QTL();
@@ -94,12 +94,18 @@ public class RatAnnot {
 //                newXdbs.add(x);
 //            }
             String[] terms = g.getEfoId().split(",");
+            rgdToTerm.computeIfAbsent(gwasQtl.getRgdId(), k -> new ArrayList<>());
+            rgdToTerm.computeIfAbsent(g.getVariantRgdId(), k -> new ArrayList<>());
+            List<String> termsQtl = rgdToTerm.get(gwasQtl.getRgdId());
+            List<String> termsVar = rgdToTerm.get(g.getVariantRgdId());
+
 
             for (String term : terms){
                 Term t = new Term();
                 t = dao.getTermByAccId(term);
-                if (t != null && !checkAnnotationExist(gwasQtl.getRgdId(), t)){
-                    Annotation a = new Annotation();
+                Annotation a = new Annotation();
+                if (t != null && !termsQtl.contains(t.getAccId()) && !checkAnnotationExist(gwasQtl.getRgdId(), t)){
+
                     a.setCreatedBy(getCreatedBy());
                     a.setLastModifiedBy(getCreatedBy());
                     a.setAnnotatedObjectRgdId(gwasQtl.getRgdId());
@@ -122,13 +128,14 @@ public class RatAnnot {
 //                    a.setXrefSource(g.getPmid());
                     // copy annot and create for variant
                     allAnnots.add(a);
-
+//                    terms.add(t.getAccId());
+                }
+                if (t != null && !termsVar.contains(t.getAccId()) && !checkAnnotationExist(g.getVariantRgdId(), t)) {// same check but for var
                     a.setObjectSymbol(g.getSnps());
                     a.setObjectName(null);
                     a.setAnnotatedObjectRgdId(g.getVariantRgdId());
                     a.setRgdObjectKey(7);
                     allAnnots.add(a);
-//                    terms.add(t.getAccId());
                 }
             }
             if (!qtlRgdIds.contains(gwasQtl.getRgdId()) && !checkRefAssocExist(gwasQtl.getRgdId())){
