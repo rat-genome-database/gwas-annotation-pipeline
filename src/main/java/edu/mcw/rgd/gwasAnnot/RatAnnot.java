@@ -78,7 +78,8 @@ public class RatAnnot {
                 gwasQtl.setRgdId(r.getRgdId());
 //                gwasQtl.setRgdId(0);
                 gwasQtl.setPeakRsId(g.getSnps());
-
+                Double pVal = g.getpVal().doubleValue();
+                gwasQtl.setPValue(pVal);
                 g.setQtlRgdId(r.getRgdId());
                 update.add(g);
                 newQtls.add(gwasQtl);
