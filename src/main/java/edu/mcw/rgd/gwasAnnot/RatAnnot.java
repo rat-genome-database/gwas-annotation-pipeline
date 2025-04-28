@@ -52,6 +52,7 @@ public class RatAnnot {
         List<Integer> qtlRgdIds = new ArrayList<>();
         List<GWASCatalog> update = new ArrayList<>();
         HashMap<Integer, List<String>> rgdToTerm = new HashMap<>();
+        HashMap<String, Term> termMap = new HashMap<>();
 
         for (GWASCatalog g : gwas){
             QTL gwasQtl = new QTL();
@@ -102,7 +103,10 @@ public class RatAnnot {
 
             for (String term : terms){
                 Term t = new Term();
-                t = dao.getTermByAccId(term);
+                if ( (t = termMap.get(term)) == null ) {
+                    t = dao.getTermByAccId(term);
+                    termMap.put(term,t);
+                }
                 Annotation a = new Annotation();
                 if (t != null && !termsQtl.contains(t.getAccId()) && !checkAnnotationExist(gwasQtl.getRgdId(), t)){
 
@@ -118,7 +122,7 @@ public class RatAnnot {
                     a.setLastModifiedDate(a.getCreatedDate());
                     a.setTerm(t.getTerm());
                     a.setTermAcc(t.getAccId());
-//                    a.setWithInfo(gwasQtl.getPeakRsId());
+                    a.setWithInfo(gwasQtl.getPeakRsId());
                     a.setObjectSymbol(gwasQtl.getSymbol());
                     a.setObjectName(gwasQtl.getName());
                     a.setSpeciesTypeKey(3);
@@ -131,11 +135,24 @@ public class RatAnnot {
 //                    terms.add(t.getAccId());
                 }
                 if (t != null && !termsVar.contains(t.getAccId()) && !checkAnnotationExist(g.getVariantRgdId(), t)) {// same check but for var
-                    a.setObjectSymbol(g.getSnps());
-                    a.setObjectName(null);
-                    a.setAnnotatedObjectRgdId(g.getVariantRgdId());
-                    a.setRgdObjectKey(7);
-                    allAnnots.add(a);
+                    Annotation aVar = new Annotation();
+                    aVar.setAnnotatedObjectRgdId(g.getVariantRgdId());
+                    aVar.setCreatedBy(getCreatedBy());
+                    aVar.setLastModifiedBy(getCreatedBy());
+                    aVar.setRefRgdId(refRgdId);
+                    if (t.getAccId().startsWith("CMO"))
+                        aVar.setAspect("L");
+                    else // it is VT
+                        aVar.setAspect("V");
+                    aVar.setCreatedDate(new Date());
+                    aVar.setTerm(t.getAccId());
+                    aVar.setObjectSymbol(g.getSnps());
+                    aVar.setSpeciesTypeKey(3);
+                    aVar.setDataSrc("RAT_GWAS");
+                    aVar.setEvidence("IAGP");
+                    aVar.setRgdObjectKey(7);
+
+                    allAnnots.add(aVar);
                 }
             }
             if (!qtlRgdIds.contains(gwasQtl.getRgdId()) && !checkRefAssocExist(gwasQtl.getRgdId())){
