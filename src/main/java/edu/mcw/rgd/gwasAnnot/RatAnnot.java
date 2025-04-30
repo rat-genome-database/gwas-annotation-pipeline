@@ -130,7 +130,7 @@ public class RatAnnot {
                     a.setDataSrc("RAT_GWAS");
                     a.setEvidence("IAGP");
                     a.setRgdObjectKey(6); // 6 - qtls
-//                    a.setXrefSource(g.getPmid());
+                    a.setXrefSource("P50DA037844");
                     // copy annot and create for variant
                     allAnnots.add(a);
 //                    terms.add(t.getAccId());
@@ -152,6 +152,7 @@ public class RatAnnot {
                     aVar.setDataSrc("RAT_GWAS");
                     aVar.setEvidence("IAGP");
                     aVar.setRgdObjectKey(7);
+                    aVar.setXrefSource("P50DA037844");
 
                     allAnnots.add(aVar);
                 }
@@ -189,16 +190,16 @@ public class RatAnnot {
     }
 
 
-    XdbId createXdb(GWASCatalog g, QTL gwasQtl) throws Exception{
+    XdbId createXdb(QTL gwasQtl) throws Exception{
         XdbId x = new XdbId();
-        x.setAccId(g.getStudyAcc());
-        x.setLinkText(g.getStudyAcc());
+        x.setAccId("P50DA037844");
+        x.setLinkText("P50DA037844");
         x.setRgdId(gwasQtl.getRgdId());
         Date date = new Date();
         x.setCreationDate(date);
         x.setModificationDate(date);
         x.setSrcPipeline("GWAS Catalog");
-        x.setXdbKey(dao.getXdbKey());
+        x.setXdbKey(162);
         return x;
     }
 
