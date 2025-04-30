@@ -146,7 +146,8 @@ public class RatAnnot {
                     else // it is VT
                         aVar.setAspect("V");
                     aVar.setCreatedDate(new Date());
-                    aVar.setTerm(t.getAccId());
+                    aVar.setTerm(t.getTerm());
+                    aVar.setTermAcc(t.getAccId());
                     aVar.setObjectSymbol(g.getSnps());
                     aVar.setSpeciesTypeKey(3);
                     aVar.setDataSrc("RAT_GWAS");
