@@ -53,7 +53,7 @@ public class RatAnnot {
         List<GWASCatalog> update = new ArrayList<>();
         HashMap<Integer, List<String>> rgdToTerm = new HashMap<>();
         HashMap<String, Term> termMap = new HashMap<>();
-        HashMap<String, Boolean> duplicateCatcher = new HashMap<>();
+        HashMap<String, Integer> duplicateCatcher = new HashMap<>();
 
         for (GWASCatalog g : gwas){
             QTL gwasQtl = new QTL();
@@ -135,9 +135,9 @@ public class RatAnnot {
                     String annot = a.getRefRgdId()+"|"+a.getAnnotatedObjectRgdId()+"|"+a.getTermAcc()+"|"+
                             a.getXrefSource()+"|"+a.getQualifier()+"|"+a.getWithInfo()+"|"+a.getEvidence();
                     // copy annot and create for variant
-                    if (!duplicateCatcher.get(annot)) {
+                    if (duplicateCatcher.get(annot)!=null) {
                         allAnnots.add(a);
-                        duplicateCatcher.put(annot,true);
+                        duplicateCatcher.put(annot,6);
                     }
 //                    terms.add(t.getAccId());
                 }
@@ -163,9 +163,9 @@ public class RatAnnot {
                     String annot = aVar.getRefRgdId()+"|"+aVar.getAnnotatedObjectRgdId()+"|"+aVar.getTermAcc()+"|"+
                             aVar.getXrefSource()+"|"+aVar.getQualifier()+"|"+aVar.getWithInfo()+"|"+aVar.getEvidence();
                     // copy annot and create for variant
-                    if (!duplicateCatcher.get(annot)) {
+                    if (duplicateCatcher.get(annot)!=null) {
                         allAnnots.add(aVar);
-                        duplicateCatcher.put(annot,true);
+                        duplicateCatcher.put(annot,7);
                     }
 //                    allAnnots.add(aVar);
                 }
