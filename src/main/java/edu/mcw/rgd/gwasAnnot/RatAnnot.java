@@ -53,6 +53,7 @@ public class RatAnnot {
         List<GWASCatalog> update = new ArrayList<>();
         HashMap<Integer, List<String>> rgdToTerm = new HashMap<>();
         HashMap<String, Term> termMap = new HashMap<>();
+        HashMap<String, Boolean> duplicateCatcher = new HashMap<>();
 
         for (GWASCatalog g : gwas){
             QTL gwasQtl = new QTL();
@@ -131,8 +132,13 @@ public class RatAnnot {
                     a.setEvidence("IAGP");
                     a.setRgdObjectKey(6); // 6 - qtls
                     a.setXrefSource("P50DA037844");
+                    String annot = a.getRefRgdId()+"|"+a.getAnnotatedObjectRgdId()+"|"+a.getTermAcc()+"|"+
+                            a.getXrefSource()+"|"+a.getQualifier()+"|"+a.getWithInfo()+"|"+a.getEvidence();
                     // copy annot and create for variant
-                    allAnnots.add(a);
+                    if (!duplicateCatcher.get(annot)) {
+                        allAnnots.add(a);
+                        duplicateCatcher.put(annot,true);
+                    }
 //                    terms.add(t.getAccId());
                 }
                 if (t != null && !termsVar.contains(t.getAccId()) && !checkAnnotationExist(g.getVariantRgdId(), t)) {// same check but for var
@@ -154,8 +160,14 @@ public class RatAnnot {
                     aVar.setEvidence("IAGP");
                     aVar.setRgdObjectKey(7);
                     aVar.setXrefSource("P50DA037844");
-
-                    allAnnots.add(aVar);
+                    String annot = aVar.getRefRgdId()+"|"+aVar.getAnnotatedObjectRgdId()+"|"+aVar.getTermAcc()+"|"+
+                            aVar.getXrefSource()+"|"+aVar.getQualifier()+"|"+aVar.getWithInfo()+"|"+aVar.getEvidence();
+                    // copy annot and create for variant
+                    if (!duplicateCatcher.get(annot)) {
+                        allAnnots.add(aVar);
+                        duplicateCatcher.put(annot,true);
+                    }
+//                    allAnnots.add(aVar);
                 }
             }
             if (!qtlRgdIds.contains(gwasQtl.getRgdId()) && !checkRefAssocExist(gwasQtl.getRgdId())){
