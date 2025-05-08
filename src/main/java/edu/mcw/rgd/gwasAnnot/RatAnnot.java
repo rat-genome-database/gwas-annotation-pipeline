@@ -135,7 +135,7 @@ public class RatAnnot {
                     String annot = a.getRefRgdId()+"|"+a.getAnnotatedObjectRgdId()+"|"+a.getTermAcc()+"|"+
                             a.getXrefSource()+"|"+a.getQualifier()+"|"+a.getWithInfo()+"|"+a.getEvidence();
                     // copy annot and create for variant
-                    if (duplicateCatcher.get(annot)!=null) {
+                    if (duplicateCatcher.get(annot)==null) {
                         allAnnots.add(a);
                         duplicateCatcher.put(annot,6);
                     }
@@ -163,7 +163,7 @@ public class RatAnnot {
                     String annot = aVar.getRefRgdId()+"|"+aVar.getAnnotatedObjectRgdId()+"|"+aVar.getTermAcc()+"|"+
                             aVar.getXrefSource()+"|"+aVar.getQualifier()+"|"+aVar.getWithInfo()+"|"+aVar.getEvidence();
                     // copy annot and create for variant
-                    if (duplicateCatcher.get(annot)!=null) {
+                    if (duplicateCatcher.get(annot)==null) {
                         allAnnots.add(aVar);
                         duplicateCatcher.put(annot,7);
                     }
