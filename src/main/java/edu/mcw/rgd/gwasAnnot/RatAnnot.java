@@ -91,11 +91,11 @@ public class RatAnnot {
                 g.setQtlRgdId(gwasQtl.getRgdId());
                 update.add(g);
             }
-//            List<XdbId> xdbs = dao.getGwasXdbs(gwasQtl.getRgdId());
-//            if (xdbs.isEmpty()){
-//                XdbId x = createXdb(g, gwasQtl);
-//                newXdbs.add(x);
-//            }
+            List<XdbId> xdbs = dao.getGwasXdbs(gwasQtl.getRgdId());
+            if (xdbs.isEmpty()){
+                XdbId x = createXdb(gwasQtl);
+                newXdbs.add(x);
+            }
             String[] terms = g.getEfoId().split(",");
             rgdToTerm.computeIfAbsent(gwasQtl.getRgdId(), k -> new ArrayList<>());
             rgdToTerm.computeIfAbsent(g.getVariantRgdId(), k -> new ArrayList<>());
@@ -131,7 +131,7 @@ public class RatAnnot {
                     a.setDataSrc("RAT_GWAS");
                     a.setEvidence("IAGP");
                     a.setRgdObjectKey(6); // 6 - qtls
-                    a.setXrefSource("P50DA037844");
+//                    a.setXrefSource("P50DA037844");
                     String annot = a.getRefRgdId()+"|"+a.getAnnotatedObjectRgdId()+"|"+a.getTermAcc()+"|"+
                             a.getXrefSource()+"|"+a.getQualifier()+"|"+a.getWithInfo()+"|"+a.getEvidence();
                     // copy annot and create for variant
@@ -159,7 +159,7 @@ public class RatAnnot {
                     aVar.setDataSrc("RAT_GWAS");
                     aVar.setEvidence("IAGP");
                     aVar.setRgdObjectKey(7);
-                    aVar.setXrefSource("P50DA037844");
+//                    aVar.setXrefSource("P50DA037844");
                     String annot = aVar.getRefRgdId()+"|"+aVar.getAnnotatedObjectRgdId()+"|"+aVar.getTermAcc()+"|"+
                             aVar.getXrefSource()+"|"+aVar.getQualifier()+"|"+aVar.getWithInfo()+"|"+aVar.getEvidence();
                     // copy annot and create for variant
