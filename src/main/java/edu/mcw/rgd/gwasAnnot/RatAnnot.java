@@ -85,7 +85,7 @@ public class RatAnnot {
                 update.add(g);
                 newQtls.add(gwasQtl);
                 qtlRgdIds.add(r.getRgdId());
-                qtlHashMap.put(g.getSnps()+"|"+g.getpVal(), gwasQtl);
+                qtlHashMap.put(g.getVariantRgdId()+"|"+g.getpVal(), gwasQtl);
             }
             if (g.getQtlRgdId()==null || g.getQtlRgdId()==0){
                 g.setQtlRgdId(gwasQtl.getRgdId());
