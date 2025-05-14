@@ -10,8 +10,8 @@
     <bean id="ratAnnot" class="edu.mcw.rgd.gwasAnnot.RatAnnot">
         <property name="version" value="GWAS Annotation Pipeline -- April 09, 2025"/>
         <property name="createdBy" value="76" />
-        <property name="refRgdId" value="610374228"/> <!-- 598108048 -->
-        <property name="refKey" value="147673"/> <!-- 148536 -->
+        <property name="refRgdId" value="598108048"/>
+        <property name="refKey" value="148536"/>
         <property name="deleteThresholdForStaleAnnotations" value="5%"/>
     </bean>
 </beans>
