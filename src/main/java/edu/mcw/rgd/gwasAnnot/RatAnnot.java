@@ -62,8 +62,8 @@ public class RatAnnot {
             if (Utils.isStringEmpty(g.getEfoId()))
                 continue;
 
-            if (qtlHashMap.get(g.getVariantRgdId()+"|"+g.getpVal())!=null){
-                gwasQtl = qtlHashMap.get(g.getSnps()+"|"+g.getpVal());
+            if (qtlHashMap.get(g.getVariantRgdId()+"|"+g.getpVal()) != null){
+                gwasQtl = qtlHashMap.get(g.getVariantRgdId()+"|"+g.getpVal());
             }
             else if (g.getQtlRgdId() != null  && !g.getQtlRgdId().equals(0)) {
                 gwasQtl = dao.getQtlByRgdId(g.getQtlRgdId());
