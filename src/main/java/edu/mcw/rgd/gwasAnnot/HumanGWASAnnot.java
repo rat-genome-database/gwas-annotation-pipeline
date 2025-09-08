@@ -429,9 +429,28 @@ public class HumanGWASAnnot {
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
-        Date dtStart = Utils.addDaysToDate(new Date(), -2);
+        Date dtStart = Utils.addDaysToDate(new Date(), -7);
         String[] aspects = {"T","L","D","V","H"};
         for (String aspect : aspects) {
+            String ont = "";
+            switch (aspect){
+                case "T":
+                    ont="EFO";
+                    break;
+                case "L":
+                    ont="CMO";
+                    break;
+                case "D":
+                    ont="DOID";
+                    break;
+                case "V":
+                    ont="VT";
+                    break;
+                case "H":
+                    ont="HP";
+                    break;
+            }
+            logStatus.info("Running for Ontology: "+ont);
             deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), "GWAS_CATALOG",aspect);
         }
         logStatus.info("\nTotal pipeline runtime -- elapsed time: "+
@@ -531,10 +550,10 @@ public class HumanGWASAnnot {
 
         List<Annotation> staleAnnots = dao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, aspect);
 
-        logStatus.info("ANNOTATIONS_COUNT: "+annotCount);
+        logStatus.info("\tANNOTATIONS_COUNT: "+annotCount);
         if( staleAnnots.size()> 0 ) {
-            logStatus.info("   stale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
-            logStatus.info("   stale annotations to be deleted: " + staleAnnots.size());
+            logStatus.info("\t\tstale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
+            logStatus.info("\t\tstale annotations to be deleted: " + staleAnnots.size());
         }
 
         if( staleAnnots.size()> staleAnnotDeleteLimit ) {
@@ -547,7 +566,7 @@ public class HumanGWASAnnot {
 ////            logAnnotsDeleted.debug("DELETE "+ann.dump("|"));
 //            staleAnnotKeys.add(ann.getKey());
 //        }
-        dao.deleteAnnotations(staleAnnots);
+//        dao.deleteAnnotations(staleAnnots);
         return staleAnnots.size();
     }
 

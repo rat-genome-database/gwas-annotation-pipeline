@@ -159,7 +159,7 @@ public class RatAnnot {
                     aVar.setDataSrc("RAT_GWAS");
                     aVar.setEvidence("IAGP");
                     aVar.setRgdObjectKey(7);
-//                    aVar.setXrefSource("P50DA037844");
+                    aVar.setXrefSource("PMID:39119916");
                     String annot = aVar.getRefRgdId()+"|"+aVar.getAnnotatedObjectRgdId()+"|"+aVar.getTermAcc()+"|"+
                             aVar.getXrefSource()+"|"+aVar.getQualifier()+"|"+aVar.getWithInfo()+"|"+aVar.getEvidence();
                     // copy annot and create for variant
