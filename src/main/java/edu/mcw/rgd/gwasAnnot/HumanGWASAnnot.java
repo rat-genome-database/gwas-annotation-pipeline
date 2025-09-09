@@ -566,7 +566,7 @@ public class HumanGWASAnnot {
 ////            logAnnotsDeleted.debug("DELETE "+ann.dump("|"));
 //            staleAnnotKeys.add(ann.getKey());
 //        }
-//        dao.deleteAnnotations(staleAnnots);
+        dao.deleteAnnotations(staleAnnots);
         return staleAnnots.size();
     }
 
