@@ -54,6 +54,22 @@
         <File name="obsoleteEfoSummary" append="false" fileName="logs/obsoleteEfoSummary.log">
             <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
         </File>
+
+        <RollingFile name="ratDetail" append="true" fileName="logs/ratDetail.log" filePattern="logs/ratDetail.log.%d{yyyy-MM}">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/><!-- 1 month roll over -->
+            </Policies>
+        </RollingFile>
+        <RollingFile name="ratStatus" append="true" fileName="logs/ratStatus.log" filePattern="logs/ratStatus.log.%d{yyyy-MM}">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %p [%c] - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+        </RollingFile>
+        <File name="ratSummary" append="false" fileName="logs/ratSummary.log">
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </File>
     </Appenders>
 
     <Loggers>
@@ -76,6 +92,12 @@
             <AppenderRef ref="obsoleteEfoDetail"/>
             <AppenderRef ref="obsoleteEfoStatus" level="info"/>
             <AppenderRef ref="obsoleteEfoSummary" level="info"/>
+            <AppenderRef ref="Console" level="info"/>
+        </Logger>
+        <Logger name="ratStatus" level="debug" additivity="false">
+            <AppenderRef ref="ratDetail"/>
+            <AppenderRef ref="ratStatus" level="info"/>
+            <AppenderRef ref="ratSummary" level="info"/>
             <AppenderRef ref="Console" level="info"/>
         </Logger>
     </Loggers>

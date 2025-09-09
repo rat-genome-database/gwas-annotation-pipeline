@@ -13,7 +13,7 @@ java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
-mainClassName = 'edu.mcw.rgd.Manager'
+mainClassName = 'edu.mcw.rgd.gwasAnnot.Manager'
 String myAppName = 'gwas-annotation-pipeline'
 
 project.archivesBaseName = myAppName

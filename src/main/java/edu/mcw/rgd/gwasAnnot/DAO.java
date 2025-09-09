@@ -1,4 +1,4 @@
-package edu.mcw.rgd;
+package edu.mcw.rgd.gwasAnnot;
 
 import edu.mcw.rgd.dao.impl.*;
 import edu.mcw.rgd.dao.impl.variants.VariantDAO;
@@ -91,6 +91,10 @@ public class DAO {
         return gdao.getFullCatalog();
     }
 
+    public List<GWASCatalog> getGWASByMapKey(int mapKey) throws Exception {
+        return gdao.getAllGWASByMapKey(mapKey);
+    }
+
     public Term getTermByName(String term, String ontId) throws Exception{
         return odao.getTermByTermName(term,ontId);
     }
@@ -101,6 +105,10 @@ public class DAO {
 
     public int GenerateNextQTLSeqForGwas()throws Exception{
         return adao.getNextKeyFromSequence("GWAS_QTL_SEQ");
+    }
+
+    public int GenerateNextQTLSeqForRatGwas()throws Exception{
+        return adao.getNextKeyFromSequence("GWAS_RAT_QTL_SEQ");
     }
 
     public Integer getVariantRgdId(GWASCatalog gc) throws Exception{

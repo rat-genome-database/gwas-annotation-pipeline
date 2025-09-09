@@ -1,4 +1,4 @@
-package edu.mcw.rgd;
+package edu.mcw.rgd.gwasAnnot;
 
 public class dbSnp {
     private String snpName;

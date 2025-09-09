@@ -1,4 +1,4 @@
-package edu.mcw.rgd;
+package edu.mcw.rgd.gwasAnnot;
 
 import edu.mcw.rgd.datamodel.*;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
@@ -8,15 +8,15 @@ import edu.mcw.rgd.datamodel.variants.VariantMapData;
 import edu.mcw.rgd.process.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.support.DefaultListableBeanFactory;
-import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
-import org.springframework.core.io.FileSystemResource;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
-public class Manager {
+public class HumanGWASAnnot {
     Logger status = LogManager.getLogger("status");
     Logger logStatus = LogManager.getLogger("deleteAnnots");
     Logger obsoleteEfo = LogManager.getLogger("obsoleteEfo");
@@ -26,21 +26,8 @@ public class Manager {
     int createdBy;
     int refKey;
     String deleteThresholdForStaleAnnotations;
-
-    public static void main(String[] args) throws Exception{
-
-        DefaultListableBeanFactory bf = new DefaultListableBeanFactory();
-        new XmlBeanDefinitionReader(bf).loadBeanDefinitions(new FileSystemResource("properties/AppConfigure.xml"));
-        Manager manager = (Manager) (bf.getBean("gwasAnnot"));
-
-        try{
-            manager.run(args);
-        }catch (Exception e){
-            Utils.printStackTrace(e,manager.status);
-        }
-    }
-
-    public void run(String[] args) throws Exception{
+    void createQtlAnnots() throws Exception{
+//        int qtlNum = 1;
         long time0 = System.currentTimeMillis();
         Date date0 = new Date();
 
@@ -49,31 +36,10 @@ public class Manager {
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         status.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
-//        int originalAnnotCount = dao.getAnnotationsModifiedBeforeTimestamp(date0, getCreatedBy()).size();
-//        if (originalAnnotCount!=0){
-//            status.info("ANNOT COUNT ORIGINAL: " + Utils.formatThousands(originalAnnotCount));
-//        }
-        // create annotations for the variants
-        List<GWASCatalog> gwas = dao.getGWASCatalog();
-        for (String arg : args) {
-            switch (arg) {
-                case "-checkDbDnp" -> checkDbSnp();
-                case "-qtlAnnotRun" -> createQtlAnnots(gwas);
-                case "-varAnnotRun" -> createVariantAnnots(gwas);
-                case "-updateAnnots" -> updateAnnotations(gwas);
-                case "-removeStaleAnnots" -> removeStaleAnnots();
-            }
-        }
-
-        // create QTLs based on the variants, and them make annotations for them
-        status.info("\nTotal pipeline runtime -- elapsed time: "+
-                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
-
-    }
-
-    void createQtlAnnots(List<GWASCatalog> gwas) throws Exception{
-//        int qtlNum = 1;
         status.info("\tStarting run for GWAS QTLs");
+
+        List<GWASCatalog> gwas = dao.getGWASByMapKey(38);
+
         HashMap<String, QTL> qtlHashMap = new HashMap<>(); // rsId + PVal is key to help prevent creating duplicates
         HashMap<String, List<String>> qtlToTerm = new HashMap<>(); // make sure I do not make duplicates of Annots
         List<QTL> existingQtl = new ArrayList<>();
@@ -293,6 +259,9 @@ public class Manager {
             dao.insertRgdRefRgd(refKey,qtlRgdIds);
         }
         status.info("\tEnding run for GWAS QTLs");
+
+        status.info("\nTotal pipeline runtime -- elapsed time: "+
+                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
         return;
     }
 
@@ -305,11 +274,22 @@ public class Manager {
         return false;
     }
 
-    void createVariantAnnots(List<GWASCatalog> catalog) throws Exception{
+    void createVariantAnnots() throws Exception{
+        long time0 = System.currentTimeMillis();
+        Date date0 = new Date();
+
+        status.info("   "+dao.getConnectionInfo());
+
+        SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        status.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
+
         status.info("\tStarting run for GWAS Variants");
+
+        List<GWASCatalog> gwas = dao.getGWASByMapKey(38);
+
         HashMap<Long,List<String>> varToTerm = new HashMap<>();
         List<Annotation> allAnnots = new ArrayList<>();
-        for (GWASCatalog gc : catalog) {
+        for (GWASCatalog gc : gwas) {
             if (gc.getEfoId() == null)
                 continue;
             if (!gc.getSnps().startsWith("rs"))
@@ -436,6 +416,9 @@ public class Manager {
             dao.insertAnnotationsBatch(allAnnots);
         }
         status.info("\tEnding run for GWAS Variants");
+
+        status.info("\nTotal pipeline runtime -- elapsed time: "+
+                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
     void removeStaleAnnots()throws Exception{
@@ -446,17 +429,37 @@ public class Manager {
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
-        Date dtStart = Utils.addDaysToDate(new Date(), -2);
+        Date dtStart = Utils.addDaysToDate(new Date(), -7);
         String[] aspects = {"T","L","D","V","H"};
         for (String aspect : aspects) {
+            String ont = "";
+            switch (aspect){
+                case "T":
+                    ont="EFO";
+                    break;
+                case "L":
+                    ont="CMO";
+                    break;
+                case "D":
+                    ont="DOID";
+                    break;
+                case "V":
+                    ont="VT";
+                    break;
+                case "H":
+                    ont="HP";
+                    break;
+            }
+            logStatus.info("Running for Ontology: "+ont);
             deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), "GWAS_CATALOG",aspect);
         }
         logStatus.info("\nTotal pipeline runtime -- elapsed time: "+
                 Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
-    void updateAnnotations(List<GWASCatalog> gwas) throws Exception {
+    void updateAnnotations() throws Exception {
         status.info("\tUpdating With Info field start");
+        List<GWASCatalog> gwas = dao.getGWASByMapKey(38);
         List<Annotation> updateWith = new ArrayList<>();
         List<Integer> rgdIds = new ArrayList<>();
         for (GWASCatalog g : gwas){
@@ -547,10 +550,10 @@ public class Manager {
 
         List<Annotation> staleAnnots = dao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, aspect);
 
-        logStatus.info("ANNOTATIONS_COUNT: "+annotCount);
+        logStatus.info("\tANNOTATIONS_COUNT: "+annotCount);
         if( staleAnnots.size()> 0 ) {
-            logStatus.info("   stale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
-            logStatus.info("   stale annotations to be deleted: " + staleAnnots.size());
+            logStatus.info("\t\tstale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
+            logStatus.info("\t\tstale annotations to be deleted: " + staleAnnots.size());
         }
 
         if( staleAnnots.size()> staleAnnotDeleteLimit ) {
