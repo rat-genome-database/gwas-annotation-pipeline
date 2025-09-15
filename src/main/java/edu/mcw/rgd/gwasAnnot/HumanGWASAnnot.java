@@ -49,6 +49,8 @@ public class HumanGWASAnnot {
         List<Note> allNotes = new ArrayList<>();
         List<XdbId> newXdbs = new ArrayList<>();
         List<Integer> qtlRgdIds = new ArrayList<>();
+        int obsoleteTerms = 0;
+        int nullTerms = 0;
         for (GWASCatalog gc : gwas){
             if (gc.getEfoId()==null)
                 continue;
@@ -137,8 +139,10 @@ public class HumanGWASAnnot {
                     status.info("\tOnt Term not found: "+efoId);
                     efoId = "EFO:" + efoId;
                     t = dao.getTermByAccId(efoId);
-                    if (t==null)
+                    if (t==null) {
+                        nullTerms++;
                         continue;
+                    }
                 }
                 String notes = "";
                 if (efoId.startsWith("EFO"))
@@ -194,10 +198,14 @@ public class HumanGWASAnnot {
                         } else
                             continue;
                         Term term = dao.getTermByAccId(ts.getTermAcc());
-                        if (term == null)
+                        if (term == null) {
+                            nullTerms++;
                             continue;
-                        if (term.isObsolete())
+                        }
+                        if (term.isObsolete()) {
+                            obsoleteTerms++;
                             continue;
+                        }
                         if (!checkAnnotationExistWithEFO(gwasQtl.getRgdId(), term, t) && !terms.contains(term.getAccId())) {
                             annot.setCreatedBy(getCreatedBy());
                             annot.setLastModifiedBy(getCreatedBy());
@@ -258,6 +266,9 @@ public class HumanGWASAnnot {
             status.info("\tNew rgd_ref_rgd objects being made: " + qtlRgdIds.size());
             dao.insertRgdRefRgd(refKey,qtlRgdIds);
         }
+
+        status.info("\tTerms that are null: "+nullTerms);
+        status.info("\tTerms that are obsolete: "+ obsoleteTerms);
         status.info("\tEnding run for GWAS QTLs");
 
         status.info("\nTotal pipeline runtime -- elapsed time: "+
