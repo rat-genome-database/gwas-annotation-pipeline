@@ -49,6 +49,8 @@ public class HumanGWASAnnot {
         List<Note> allNotes = new ArrayList<>();
         List<XdbId> newXdbs = new ArrayList<>();
         List<Integer> qtlRgdIds = new ArrayList<>();
+        int obsoleteTerms = 0;
+        int nullTerms = 0;
         for (GWASCatalog gc : gwas){
             if (gc.getEfoId()==null)
                 continue;
