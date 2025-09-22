@@ -49,6 +49,8 @@ public class HumanGWASAnnot {
         List<Note> allNotes = new ArrayList<>();
         List<XdbId> newXdbs = new ArrayList<>();
         List<Integer> qtlRgdIds = new ArrayList<>();
+        int obsoleteTerms = 0;
+        int nullTerms = 0;
         for (GWASCatalog gc : gwas){
             if (gc.getEfoId()==null)
                 continue;
@@ -94,7 +96,6 @@ public class HumanGWASAnnot {
                 gwasQtl.setChromosome(gc.getChr());
                 RgdId r = dao.createRgdId(RgdId.OBJECT_KEY_QTLS, "ACTIVE", "created by GWAS annotation Pipeline", 38);
                 gwasQtl.setRgdId(r.getRgdId());
-//                gwasQtl.setRgdId(0);
                 gwasQtl.setPeakRsId(gc.getSnps());
                 gc.setQtlRgdId(r.getRgdId());
                 newQtls.add(gwasQtl);
@@ -128,18 +129,28 @@ public class HumanGWASAnnot {
 //            if (efoIds.length>1) // could be later, an annotation is made for both EFO ids with a loop
 //                continue;
             for (String eId : efoIds) {
-                Term t = new Term();
                 String efoId = eId.replace("_", ":");
                 if (!efoId.startsWith("EFO") && !efoId.startsWith("MONDO") && !efoId.startsWith("GO") && !efoId.startsWith("HP"))
                     efoId = "EFO:" + efoId;
-                t = dao.getTermByAccId(efoId);
+                Term t = dao.getTermByAccId(efoId);
                 if (t == null && !efoId.startsWith("MONDO")) { // figure why it is null
                     status.info("\tOnt Term not found: "+efoId);
                     efoId = "EFO:" + efoId;
                     t = dao.getTermByAccId(efoId);
-                    if (t==null)
+                    if (t==null) {
+                        nullTerms++;
                         continue;
+                    }
                 }
+
+                String aspect = null;
+                if( t!=null ) {
+                    aspect = getAspectFromTermAcc(t.getAccId());
+                }
+                if( aspect==null ) {
+                    aspect = "T"; // originally, all QTL annotations had aspect set to 'T' (EFO)
+                }
+
                 String notes = "";
                 if (efoId.startsWith("EFO"))
                     notes = "Based on the EFO term ID";
@@ -161,7 +172,7 @@ public class HumanGWASAnnot {
                     a.setLastModifiedBy(getCreatedBy());
                     a.setAnnotatedObjectRgdId(gwasQtl.getRgdId());
                     a.setRefRgdId(refRgdId);
-                    a.setAspect("T");
+                    a.setAspect(aspect);
                     a.setCreatedDate(new Date());
                     a.setLastModifiedDate(a.getCreatedDate());
                     a.setTerm(t.getTerm());
@@ -194,10 +205,14 @@ public class HumanGWASAnnot {
                         } else
                             continue;
                         Term term = dao.getTermByAccId(ts.getTermAcc());
-                        if (term == null)
+                        if (term == null) {
+                            nullTerms++;
                             continue;
-                        if (term.isObsolete())
+                        }
+                        if (term.isObsolete()) {
+                            obsoleteTerms++;
                             continue;
+                        }
                         if (!checkAnnotationExistWithEFO(gwasQtl.getRgdId(), term, t) && !terms.contains(term.getAccId())) {
                             annot.setCreatedBy(getCreatedBy());
                             annot.setLastModifiedBy(getCreatedBy());
@@ -258,11 +273,32 @@ public class HumanGWASAnnot {
             status.info("\tNew rgd_ref_rgd objects being made: " + qtlRgdIds.size());
             dao.insertRgdRefRgd(refKey,qtlRgdIds);
         }
+
+        status.info("\tTerms that are null: "+nullTerms);
+        status.info("\tTerms that are obsolete: "+ obsoleteTerms);
         status.info("\tEnding run for GWAS QTLs");
 
         status.info("\nTotal pipeline runtime -- elapsed time: "+
                 Utils.formatElapsedTime(time0,System.currentTimeMillis()));
         return;
+    }
+
+    String getAspectFromTermAcc( String termAcc ) {
+
+        String aspect = null;
+
+        if (termAcc.startsWith("CMO")) {
+            aspect = "L";
+        } else if (termAcc.startsWith("DOID")) {
+            aspect = "D";
+        } else if (termAcc.startsWith("VT")) {
+            aspect = "V";
+        } else if (termAcc.startsWith("HP")) {
+            aspect = "H";
+        } else if (termAcc.startsWith("EFO") ) {
+            aspect = "T";
+        }
+        return aspect;
     }
 
     boolean checkRefAssocExist(int rgdId) throws Exception {
