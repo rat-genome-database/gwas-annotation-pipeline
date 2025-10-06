@@ -351,17 +351,18 @@ public class HumanGWASAnnot {
             String[] efoIds = gc.getEfoId().split(", ");
 
             for (String eid : efoIds) {
-                Term t = new Term();
                 String efoId =  eid.replace("_", ":");
-                if (!efoId.startsWith("EFO") && !efoId.startsWith("MONDO") && !efoId.startsWith("GO") && !efoId.startsWith("HP"))
+                if( !efoId.startsWith("EFO") ) {
                     efoId = "EFO:" + efoId;
-                t = dao.getTermByAccId(efoId);
-                if (t == null) { // figure why it is null
-                    status.info("\tOnt Term not found: "+efoId);
+                }
+                Term t = dao.getTermByAccId(efoId);
+                if( t == null ) { // figure why it is null
                     efoId = "EFO:" + efoId;
                     t = dao.getTermByAccId(efoId);
-                    if (t==null)
+                    if( t==null ) {
+                        status.info("\tOnt Term not found: "+efoId);
                         continue;
+                    }
                 }
                 String notes = "";
                 if (t.getAccId().startsWith("EFO"))
