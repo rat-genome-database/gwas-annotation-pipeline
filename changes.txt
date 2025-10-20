@@ -1,3 +1,6 @@
+Oct 6, 2025
+tuned up logging about unmatched EFO IDs for variant annotations
+
 Sep 22, 2025
 improved handling of aspect for qtl annotations
 
