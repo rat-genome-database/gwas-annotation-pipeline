@@ -26,6 +26,8 @@ public class HumanGWASAnnot {
     int createdBy;
     int refKey;
     String deleteThresholdForStaleAnnotations;
+    HashMap<String, Integer> ontTermNotFoundFreqMap;
+
     void createQtlAnnots() throws Exception{
 //        int qtlNum = 1;
         long time0 = System.currentTimeMillis();
@@ -37,6 +39,8 @@ public class HumanGWASAnnot {
         status.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
         status.info("\tStarting run for GWAS QTLs");
+
+        ontTermNotFoundFreqMap = new HashMap<>();
 
         List<GWASCatalog> gwas = dao.getGWASByMapKey(38);
 
@@ -134,7 +138,8 @@ public class HumanGWASAnnot {
                     efoId = "EFO:" + efoId;
                 Term t = dao.getTermByAccId(efoId);
                 if (t == null && !efoId.startsWith("MONDO")) { // figure why it is null
-                    status.info("\tOnt Term not found: "+efoId);
+                    //status.info("\tOnt Term not found: "+efoId);
+                    addOntTermToNotFoundMap(efoId);
                     efoId = "EFO:" + efoId;
                     t = dao.getTermByAccId(efoId);
                     if (t==null) {
@@ -151,7 +156,7 @@ public class HumanGWASAnnot {
                     aspect = "T"; // originally, all QTL annotations had aspect set to 'T' (EFO)
                 }
 
-                String notes = "";
+                String notes;
                 if (efoId.startsWith("EFO"))
                     notes = "Based on the EFO term ID";
                 else if (efoId.startsWith("MONDO"))
@@ -276,11 +281,29 @@ public class HumanGWASAnnot {
 
         status.info("\tTerms that are null: "+nullTerms);
         status.info("\tTerms that are obsolete: "+ obsoleteTerms);
-        status.info("\tEnding run for GWAS QTLs");
 
-        status.info("\nTotal pipeline runtime -- elapsed time: "+
-                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
-        return;
+        dumpOntTermNotFoundMap();
+
+        status.info("\tEnding run for GWAS QTLs");
+        status.info("\nTotal pipeline runtime -- elapsed time: "+ Utils.formatElapsedTime(time0,System.currentTimeMillis()));
+    }
+
+    void addOntTermToNotFoundMap( String termAcc ) {
+
+        Integer count = ontTermNotFoundFreqMap.get(termAcc);
+        if( count==null ) {
+            count = 0;
+        }
+        ontTermNotFoundFreqMap.put(termAcc, count+1);
+    }
+
+    void dumpOntTermNotFoundMap() {
+        if( !ontTermNotFoundFreqMap.isEmpty() ) {
+            status.info("\tOnt Term not found: "+ontTermNotFoundFreqMap.size());
+            for( HashMap.Entry<String,Integer> entry: ontTermNotFoundFreqMap.entrySet() ) {
+                status.info("\t\t"+entry.getKey()+": "+entry.getValue());
+            }
+        }
     }
 
     String getAspectFromTermAcc( String termAcc ) {
@@ -321,6 +344,8 @@ public class HumanGWASAnnot {
 
         status.info("\tStarting run for GWAS Variants");
 
+        ontTermNotFoundFreqMap = new HashMap<>();
+
         List<GWASCatalog> gwas = dao.getGWASByMapKey(38);
 
         HashMap<Long,List<String>> varToTerm = new HashMap<>();
@@ -360,11 +385,11 @@ public class HumanGWASAnnot {
                     efoId = "EFO:" + efoId;
                     t = dao.getTermByAccId(efoId);
                     if( t==null ) {
-                        status.info("\tOnt Term not found: "+efoId);
+                        addOntTermToNotFoundMap(efoId);
                         continue;
                     }
                 }
-                String notes = "";
+                String notes;
                 if (t.getAccId().startsWith("EFO"))
                     notes = "Based on the EFO term ID";
                 else if (t.getAccId().startsWith("MONDO"))
@@ -448,14 +473,16 @@ public class HumanGWASAnnot {
                 varToTerm.put(vmd.getId(),terms);
             } // end efo for
         }
+
+        dumpOntTermNotFoundMap();
+
         if (!allAnnots.isEmpty()){
             status.info("\tAnnotations being made for Variants: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
         status.info("\tEnding run for GWAS Variants");
 
-        status.info("\nTotal pipeline runtime -- elapsed time: "+
-                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
+        status.info("\nTotal pipeline runtime -- elapsed time: "+ Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
     void removeStaleAnnots()throws Exception{
@@ -488,10 +515,10 @@ public class HumanGWASAnnot {
                     break;
             }
             logStatus.info("Running for Ontology: "+ont);
-            deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), "GWAS_CATALOG",aspect);
+            int deleted = deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), "GWAS_CATALOG",aspect);
+            logStatus.info("Deleted "+deleted+" annotations");
         }
-        logStatus.info("\nTotal pipeline runtime -- elapsed time: "+
-                Utils.formatElapsedTime(time0,System.currentTimeMillis()));
+        logStatus.info("\nTotal pipeline runtime -- elapsed time: " + Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
     void updateAnnotations() throws Exception {
