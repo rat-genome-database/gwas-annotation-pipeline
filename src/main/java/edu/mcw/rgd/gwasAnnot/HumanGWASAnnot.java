@@ -62,7 +62,7 @@ public class HumanGWASAnnot {
                 continue;
             if (gc.getSnps().contains(" x ") || gc.getSnps().contains(",") || gc.getSnps().contains("/"))
                 continue;
-            if (gc.getChr()==null)
+            if (gc.getChr()==null || gc.getpVal()==null)
                 continue;
 
 
@@ -82,6 +82,9 @@ public class HumanGWASAnnot {
                     updateName.add(gwasQtl);
                 }
             }
+//            else if (gc.getChr()!=null && gc.getpVal()!=null && gc.getpValMlog()!=null && gc.getSnps()!=null){
+//                gwasQtl = dao.getQtlByChrPValPeakRs(gc.getChr(),gc.getpVal().toString(),gc.getpValMlog().toString(),gc.getSnps());
+//            }
             else {
                 BigDecimal pval = gc.getpVal();
                 int scale = pval.scale();

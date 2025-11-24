@@ -138,6 +138,10 @@ public class DAO {
         return qdao.getQTL(rgdId);
     }
 
+    public QTL getQtlByChrPValPeakRs(String chr, String pval, String pvmlog, String rsId) throws Exception{
+        return qdao.getQtlByChrPValPeakRs(chr,pval,pvmlog,rsId);
+    }
+
     public void insertQTL(QTL q) throws Exception {
         qdao.insertQTL(q,"ACTIVE",1);
     }
