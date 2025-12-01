@@ -62,7 +62,7 @@ public class HumanGWASAnnot {
                 continue;
             if (gc.getSnps().contains(" x ") || gc.getSnps().contains(",") || gc.getSnps().contains("/"))
                 continue;
-            if (gc.getChr()==null || gc.getpVal()==null)
+            if (gc.getChr()==null || gc.getpValStr()==null)
                 continue;
 
 
