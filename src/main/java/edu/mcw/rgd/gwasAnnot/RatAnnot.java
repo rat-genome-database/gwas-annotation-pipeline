@@ -70,7 +70,17 @@ public class RatAnnot {
                 qtlHashMap.put(g.getSnps()+"|"+g.getpVal(), gwasQtl);
                 existingQtl.add(gwasQtl);
             }
-            else {
+            else if (g.getChr()!=null && g.getpVal()!=null && g.getSnps()!=null){
+                gwasQtl = dao.getQtlByChrPValPeakRs(g.getChr(),g.getpVal().toString(),null,g.getSnps());
+                if (gwasQtl != null) {
+                    qtlHashMap.put(g.getVariantRgdId()+"|"+g.getpVal(), gwasQtl);
+                    existingQtl.add(gwasQtl);
+                    g.setQtlRgdId(gwasQtl.getRgdId());
+                    update.add(g);
+                }
+            }
+            if (gwasQtl == null || gwasQtl.getRgdId() == 0) {
+                gwasQtl = new QTL();
                 int qtlNum = dao.GenerateNextQTLSeqForRatGwas();
                 gwasQtl.setSymbol("GWAS"+qtlNum+"_R");
                 gwasQtl.setName(g.getMapTrait() + " QTL GWAS"+ qtlNum);
