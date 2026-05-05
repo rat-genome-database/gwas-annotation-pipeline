@@ -502,7 +502,7 @@ public class HumanGWASAnnot {
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
-        Date dtStart = Utils.addDaysToDate(new Date(), -7);
+        Date dtStart = Utils.addDaysToDate(new Date(), -14);
         String[] aspects = {"T","L","D","V","H"};
         for (String aspect : aspects) {
             String ont = "";
