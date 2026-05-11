@@ -82,7 +82,16 @@ public class HumanGWASAnnot {
                     updateName.add(gwasQtl);
                 }
             }
-            else {
+            else if (gc.getChr()!=null && gc.getpVal()!=null && gc.getpValMlog()!=null && gc.getSnps()!=null){
+                gwasQtl = dao.getQtlByChrPValPeakRs(gc.getChr(),gc.getpVal().toString(),gc.getpValMlog().toString(),gc.getSnps());
+                if (gwasQtl != null) {
+                    qtlHashMap.put(gwasQtl.getPeakRsId() + "|" + gc.getpValMlog(), gwasQtl);
+                    existingQtl.add(gwasQtl);
+                    gc.setQtlRgdId(gwasQtl.getRgdId());
+                }
+            }
+            if (gwasQtl == null || gwasQtl.getRgdId() == 0) {
+                gwasQtl = new QTL();
                 BigDecimal pval = gc.getpVal();
                 int scale = pval.scale();
                 if (scale>83){
@@ -493,7 +502,7 @@ public class HumanGWASAnnot {
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
-        Date dtStart = Utils.addDaysToDate(new Date(), -7);
+        Date dtStart = Utils.addDaysToDate(new Date(), -14);
         String[] aspects = {"T","L","D","V","H"};
         for (String aspect : aspects) {
             String ont = "";

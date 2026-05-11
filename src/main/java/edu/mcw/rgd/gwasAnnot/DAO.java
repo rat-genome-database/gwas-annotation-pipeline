@@ -138,6 +138,20 @@ public class DAO {
         return qdao.getQTL(rgdId);
     }
 
+    public QTL getQtlByChrPValPeakRs(String chr, String pval, String pvmlog, String rsId) throws Exception{
+        if (pvmlog == null)
+            return getQtlByChrPValRs(chr, pval, rsId);
+        return qdao.getQtlByChrPValPeakRs(chr,pval,pvmlog,rsId);
+    }
+
+    public QTL getQtlByChrPValRs(String chr, String pval, String rsId) throws Exception{
+        String sql = "select q.*, r.SPECIES_TYPE_KEY from QTLs q, RGD_IDS r where r.RGD_ID=q.RGD_ID and q.chromosome=? and q.p_value=? and q.peak_rs_id=?";
+        List<QTL> qtls = qdao.executeQtlQuery(sql, chr, pval, rsId);
+        if (qtls.isEmpty())
+            return null;
+        return qtls.get(0);
+    }
+
     public void insertQTL(QTL q) throws Exception {
         qdao.insertQTL(q,"ACTIVE",1);
     }
