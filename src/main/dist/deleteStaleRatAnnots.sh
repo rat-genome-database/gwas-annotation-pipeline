@@ -6,7 +6,6 @@
 APPNAME=gwas-annotation-pipeline
 SERVER=`hostname -s | tr '[a-z]' '[A-Z]'`
 
-#EMAILLIST=mtutaj@mcw.edu,llamers@mcw.edu
 EMAILLIST="mtutaj@mcw.edu llamers@mcw.edu"
 
 APPDIR=/home/rgddata/pipelines/$APPNAME

@@ -142,9 +142,15 @@ public class HumanGWASAnnot {
 //            if (efoIds.length>1) // could be later, an annotation is made for both EFO ids with a loop
 //                continue;
             for (String eId : efoIds) {
-                String efoId = eId.replace("_", ":");
-                if (!efoId.startsWith("EFO") && !efoId.startsWith("MONDO") && !efoId.startsWith("GO") && !efoId.startsWith("HP"))
-                    efoId = "EFO:" + efoId;
+                String efoId;
+                if (eId.startsWith("OBA_VT")) {
+                    // OBA_VT ids carry a VT id directly, e.g. OBA_VT0001253 -> VT:0001253
+                    efoId = "VT:" + eId.substring("OBA_VT".length());
+                } else {
+                    efoId = eId.replace("_", ":");
+                    if (!efoId.startsWith("EFO") && !efoId.startsWith("MONDO") && !efoId.startsWith("GO") && !efoId.startsWith("HP"))
+                        efoId = "EFO:" + efoId;
+                }
                 Term t = dao.getTermByAccId(efoId);
                 if (t == null && !efoId.startsWith("MONDO")) { // figure why it is null
                     //status.info("\tOnt Term not found: "+efoId);
@@ -174,6 +180,8 @@ public class HumanGWASAnnot {
                     notes = "Based on the GO term ID from GWAS";
                 else if (efoId.startsWith("HP"))
                     notes = "Based on the HP term ID from GWAS";
+                else if (efoId.startsWith("VT"))
+                    notes = "Based on the VT term ID from GWAS";
                 else
                     notes = "Based on the EFO term ID";
                 qtlToTerm.computeIfAbsent(gwasQtl.getSymbol(), k -> new ArrayList<>());
@@ -385,9 +393,15 @@ public class HumanGWASAnnot {
             String[] efoIds = gc.getEfoId().split(", ");
 
             for (String eid : efoIds) {
-                String efoId =  eid.replace("_", ":");
-                if( !efoId.startsWith("EFO") ) {
-                    efoId = "EFO:" + efoId;
+                String efoId;
+                if (eid.startsWith("OBA_VT")) {
+                    // OBA_VT ids carry a VT id directly, e.g. OBA_VT0001253 -> VT:0001253
+                    efoId = "VT:" + eid.substring("OBA_VT".length());
+                } else {
+                    efoId = eid.replace("_", ":");
+                    if( !efoId.startsWith("EFO") ) {
+                        efoId = "EFO:" + efoId;
+                    }
                 }
                 Term t = dao.getTermByAccId(efoId);
                 if( t == null ) { // figure why it is null
@@ -407,6 +421,8 @@ public class HumanGWASAnnot {
                     notes = "Based on the GO term ID from GWAS";
                 else if (t.getAccId().startsWith("HP"))
                     notes = "Based on the HP term ID from GWAS";
+                else if (t.getAccId().startsWith("VT"))
+                    notes = "Based on the VT term ID from GWAS";
                 else
                     notes = "Based on the EFO term ID";
 
@@ -419,7 +435,8 @@ public class HumanGWASAnnot {
                     a.setLastModifiedBy(getCreatedBy());
                     a.setAnnotatedObjectRgdId(rgdId);
                     a.setRefRgdId(refRgdId);
-                    a.setAspect("T");
+                    // VT terms (from OBA_VT ids) get aspect V; everything else stays T (EFO) as before
+                    a.setAspect(t.getAccId().startsWith("VT") ? "V" : "T");
                     a.setCreatedDate(new Date());
                     a.setLastModifiedDate(a.getLastModifiedDate());
 //                    a.setWithInfo("RGD:"+vmd.getId());

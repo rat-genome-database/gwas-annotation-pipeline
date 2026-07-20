@@ -1,3 +1,6 @@
+July 20, 2026
+map OBA_VT ids from GWAS to VT terms for annotation (e.g. OBA_VT0001253 -> VT:0001253)
+
 Oct 6, 2025
 tuned up logging about unmatched EFO IDs for variant annotations
 
