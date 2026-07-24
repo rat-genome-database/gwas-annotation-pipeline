@@ -15,10 +15,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HumanGWASAnnot {
-    Logger status = LogManager.getLogger("status");
-    Logger logStatus = LogManager.getLogger("deleteAnnots");
+    Logger logStatus = LogManager.getLogger("status");
+    Logger logDeleteAnnots = LogManager.getLogger("deleteAnnots");
     Logger obsoleteEfo = LogManager.getLogger("obsoleteEfo");
     DAO dao = new DAO();
     String version;
@@ -35,12 +36,12 @@ public class HumanGWASAnnot {
         long time0 = System.currentTimeMillis();
         Date date0 = new Date();
 
-        status.info("   "+dao.getConnectionInfo());
+        logStatus.info("   "+dao.getConnectionInfo());
 
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        status.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
+        logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
-        status.info("\tStarting run for GWAS QTLs");
+        logStatus.info("\tStarting run for GWAS QTLs");
 
         ontIdToAspectMap = dao.loadOntIdToAspectMap();
 
@@ -258,41 +259,41 @@ public class HumanGWASAnnot {
 
         // insert annotations, qtls,update qwas
         if (!existingQtl.isEmpty())
-            status.info("\tGWAS QTLs already existing: "+existingQtl.size());
+            logStatus.info("\tGWAS QTLs already existing: "+existingQtl.size());
         if (!updateName.isEmpty()){
-            status.info("\tGWAS QTLs having their name updated: "+updateName.size());
+            logStatus.info("\tGWAS QTLs having their name updated: "+updateName.size());
             dao.updateQTLNameBatch(updateName);
         }
         if (!newQtls.isEmpty()) {
-            status.info("\tNew QTLs being made for GWAS: "+newQtls.size());
+            logStatus.info("\tNew QTLs being made for GWAS: "+newQtls.size());
             dao.insertQTLBatch(newQtls);
             dao.updateGwasQtlRgdIdBatch(gwas);
         }
         if (!newXdbs.isEmpty())
         {
-            status.info("\tNew XdbIds being made for QTLs: "+newXdbs.size());
+            logStatus.info("\tNew XdbIds being made for QTLs: "+newXdbs.size());
             dao.insertGwasXdbs(newXdbs);
         }
         if (!allNotes.isEmpty()){
-            status.info("\tNotes being made for QTLs: "+allNotes.size());
+            logStatus.info("\tNotes being made for QTLs: "+allNotes.size());
             dao.updateNote(allNotes);
         }
         if (!allAnnots.isEmpty()){
-            status.info("\tAnnotations for QTLs being made: "+allAnnots.size());
+            logStatus.info("\tAnnotations for QTLs being made: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
         if (!qtlRgdIds.isEmpty()){
-            status.info("\tNew rgd_ref_rgd objects being made: " + qtlRgdIds.size());
+            logStatus.info("\tNew rgd_ref_rgd objects being made: " + qtlRgdIds.size());
             dao.insertRgdRefRgd(refKey,qtlRgdIds);
         }
 
-        status.info("\tTerms that are null: "+nullTerms);
-        status.info("\tTerms that are obsolete: "+ obsoleteTerms);
+        logStatus.info("\tTerms that are null: "+nullTerms);
+        logStatus.info("\tTerms that are obsolete: "+ obsoleteTerms);
 
         dumpOntTermNotFoundMap();
 
-        status.info("\tEnding run for GWAS QTLs");
-        status.info("\nTotal pipeline runtime -- elapsed time: "+ Utils.formatElapsedTime(time0,System.currentTimeMillis()));
+        logStatus.info("\tEnding run for GWAS QTLs");
+        logStatus.info("\nTotal pipeline runtime -- elapsed time: "+ Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
     void addOntTermToNotFoundMap( String termAcc ) {
@@ -306,9 +307,9 @@ public class HumanGWASAnnot {
 
     void dumpOntTermNotFoundMap() {
         if( !ontTermNotFoundFreqMap.isEmpty() ) {
-            status.info("\tOnt Term not found: "+ontTermNotFoundFreqMap.size());
+            logStatus.info("\tOnt Term not found: "+ontTermNotFoundFreqMap.size());
             for( HashMap.Entry<String,Integer> entry: ontTermNotFoundFreqMap.entrySet() ) {
-                status.info("\t\t"+entry.getKey()+": "+entry.getValue());
+                logStatus.info("\t\t"+entry.getKey()+": "+entry.getValue());
             }
         }
     }
@@ -326,12 +327,12 @@ public class HumanGWASAnnot {
         long time0 = System.currentTimeMillis();
         Date date0 = new Date();
 
-        status.info("   "+dao.getConnectionInfo());
+        logStatus.info("   "+dao.getConnectionInfo());
 
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        status.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
+        logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
-        status.info("\tStarting run for GWAS Variants");
+        logStatus.info("\tStarting run for GWAS Variants");
 
         ontTermNotFoundFreqMap = new HashMap<>();
 
@@ -465,52 +466,37 @@ public class HumanGWASAnnot {
         dumpOntTermNotFoundMap();
 
         if (!allAnnots.isEmpty()){
-            status.info("\tAnnotations being made for Variants: "+allAnnots.size());
+            logStatus.info("\tAnnotations being made for Variants: "+allAnnots.size());
             dao.insertAnnotationsBatch(allAnnots);
         }
-        status.info("\tEnding run for GWAS Variants");
+        logStatus.info("\tEnding run for GWAS Variants");
 
-        status.info("\nTotal pipeline runtime -- elapsed time: "+ Utils.formatElapsedTime(time0,System.currentTimeMillis()));
+        logStatus.info("\nTotal pipeline runtime -- elapsed time: "+ Utils.formatElapsedTime(time0,System.currentTimeMillis()));
     }
 
     void removeStaleAnnots()throws Exception{
-        Date date0 = new Date();
         long time0 = System.currentTimeMillis();
+        Date date0 = new Date(time0);
         logStatus.info("   "+dao.getConnectionInfo());
 
         SimpleDateFormat sdt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        logStatus.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
+        String msg = "GWAS Annotation Pipeline, module -removeStaleAnnots, started at "+sdt.format(date0);
+        logStatus.info(msg);
+        logDeleteAnnots.info(msg);
 
         Date dtStart = Utils.addDaysToDate(new Date(), -14);
-        String[] aspects = {"T","L","D","V","H"};
-        for (String aspect : aspects) {
-            String ont = "";
-            switch (aspect){
-                case "T":
-                    ont="EFO";
-                    break;
-                case "L":
-                    ont="CMO";
-                    break;
-                case "D":
-                    ont="DOID";
-                    break;
-                case "V":
-                    ont="VT";
-                    break;
-                case "H":
-                    ont="HP";
-                    break;
-            }
-            logStatus.info("Running for Ontology: "+ont);
-            int deleted = deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), "GWAS_CATALOG",aspect);
-            logStatus.info("Deleted "+deleted+" annotations");
-        }
-        logStatus.info("\nTotal pipeline runtime -- elapsed time: " + Utils.formatElapsedTime(time0,System.currentTimeMillis()));
+        int deleted = deleteObsoleteAnnotations(getCreatedBy(), dtStart, getDeleteThresholdForStaleAnnotations(), getRefRgdId(), SpeciesType.HUMAN);
+        msg = "Deleted "+deleted+" annotations";
+        logStatus.info(msg);
+        logDeleteAnnots.info(msg);
+
+        msg = "=== Pipeline elapsed time: " + Utils.formatElapsedTime(time0,System.currentTimeMillis())+"\n";
+        logStatus.info(msg);
+        logDeleteAnnots.info(msg);
     }
 
     void updateAnnotations() throws Exception {
-        status.info("\tUpdating With Info field start");
+        logStatus.info("\tUpdating With Info field start");
         List<GWASCatalog> gwas = dao.getGWASByMapKey(38);
         List<Annotation> updateWith = new ArrayList<>();
         List<Integer> rgdIds = new ArrayList<>();
@@ -531,10 +517,10 @@ public class HumanGWASAnnot {
             rgdIds.add(gwasQtl.getRgdId());
         }
         if (!updateWith.isEmpty()){
-            status.info("\t\tAnnotations being updated: " + updateWith.size());
+            logStatus.info("\t\tAnnotations being updated: " + updateWith.size());
             dao.updateAnnotations(updateWith);
         }
-        status.info("\tUpdating With Info field end");
+        logStatus.info("\tUpdating With Info field end");
     }
 
     void checkDbSnp()throws Exception{
@@ -592,33 +578,50 @@ public class HumanGWASAnnot {
         return false; // if none, false
     }
 
-    int deleteObsoleteAnnotations(int createdBy, Date dt, String staleAnnotDeleteThresholdStr, int refRgdId, String dataSource, String aspect) throws Exception{
+    int deleteObsoleteAnnotations(int createdBy, Date dt, String staleAnnotDeleteThresholdStr, int refRgdId, int speciesTypeKey) throws Exception {
 
         // convert delete-threshold string to number; i.e. '5%' --> '5'
         int staleAnnotDeleteThresholdPerc = Integer.parseInt(staleAnnotDeleteThresholdStr.substring(0, staleAnnotDeleteThresholdStr.length()-1));
         // compute maximum allowed number of stale annots to be deleted
-        int annotCount = dao.getCountOfAnnotationsByReference(refRgdId, dataSource, aspect);
+        int annotCount = dao.getCountOfAnnotationsByReference(refRgdId, speciesTypeKey);
         int staleAnnotDeleteLimit = (staleAnnotDeleteThresholdPerc * annotCount) / 100;
 
-        List<Annotation> staleAnnots = dao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, aspect);
+        List<Annotation> staleAnnots = dao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, refRgdId, speciesTypeKey);
 
-        logStatus.info("\tANNOTATIONS_COUNT: "+annotCount);
+        logDeleteAnnots.info("\tANNOTATIONS_COUNT: "+annotCount);
         if( staleAnnots.size()> 0 ) {
-            logStatus.info("\t\tstale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
-            logStatus.info("\t\tstale annotations to be deleted: " + staleAnnots.size());
+            logDeleteAnnots.info("\t\tstale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit);
+            logDeleteAnnots.info("\t\tstale annotations to be deleted: " + staleAnnots.size());
         }
 
         if( staleAnnots.size()> staleAnnotDeleteLimit ) {
-            logStatus.warn("*** DELETE of stale annots aborted! *** "+staleAnnotDeleteThresholdStr+" delete threshold exceeded!");
+            String msg = "*** DELETE of stale annotations aborted! *** "+staleAnnotDeleteThresholdStr+" delete threshold exceeded!\n"
+                    +"  annotation count: "+annotCount+"\n"
+                    +"  stale annotation delete limit (" + staleAnnotDeleteThresholdStr + "): " + staleAnnotDeleteLimit +"\n"
+                    +"  stale annotations to be deleted: " + staleAnnots.size();
+            logStatus.warn(msg);
+            logDeleteAnnots.warn(msg);
             return 0;
         }
 
-//        List<Integer> staleAnnotKeys = new ArrayList<>();
-//        for( Annotation ann: staleAnnots ) {
-////            logAnnotsDeleted.debug("DELETE "+ann.dump("|"));
-//            staleAnnotKeys.add(ann.getKey());
-//        }
+        // before deleting, count annotations per aspect
+        HashMap<String, Integer> deletedAnnotsPerAspect = new HashMap<>();
+        for( Annotation a: staleAnnots ) {
+            Integer count = deletedAnnotsPerAspect.get(a.getAspect());
+            if( count == null ) {
+                count = 1;
+            } else {
+                count++;
+            }
+            deletedAnnotsPerAspect.put(a.getAspect(), count);
+        }
+
         dao.deleteAnnotations(staleAnnots);
+
+        for( Map.Entry<String, Integer> entry: deletedAnnotsPerAspect.entrySet() ) {
+            logDeleteAnnots.info("    stale annots deleted for aspect "+entry.getKey()+": "+entry.getValue());
+        }
+
         return staleAnnots.size();
     }
 

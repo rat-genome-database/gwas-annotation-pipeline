@@ -44,7 +44,7 @@ public class Manager {
                 }
             }
         }catch (Exception e){
-            Utils.printStackTrace(e,ha.status);
+            Utils.printStackTrace(e, ha.logStatus);
         }
     }
 

@@ -22,8 +22,8 @@ public class DAO {
     AssociationDAO associationDAO = new AssociationDAO();
     GWASCatalogDAO gdao = new GWASCatalogDAO();
     OntologyXDAO odao = new OntologyXDAO();
-    VariantDAO vdao = new VariantDAO();
     QTLDAO qdao = new QTLDAO();
+    VariantDAO vdao = new VariantDAO();
     NotesDAO noteDAO = new NotesDAO();
     RGDManagementDAO managementDAO = new RGDManagementDAO();
     XdbIdDAO xdao = new XdbIdDAO();
@@ -52,6 +52,23 @@ public class DAO {
     public List<Annotation> getAnnotationsModifiedBeforeTimestampForVT(Date dt, int createdBy) throws Exception{
         return adao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, "V");
     }
+
+    public List<Annotation> getAnnotationsModifiedBeforeTimestamp(int createdBy, Date dt, int refRgdId, int speciesTypeKey) throws Exception{
+        return adao.getAnnotationsModifiedBeforeTimestamp(createdBy, dt, refRgdId, speciesTypeKey);
+    }
+
+    public int getCountOfAnnotationsByReference(int refRgdId, int speciesTypeKey) throws Exception {
+        return adao.getCountOfAnnotationsByReference(refRgdId, speciesTypeKey);
+    }
+
+    public int getCountOfAnnotationsByReference(int refRgdId, String dataSource, String aspect) throws Exception{
+        return adao.getCountOfAnnotationsByReference(refRgdId,dataSource,aspect);
+    }
+
+    public List<Annotation> getAnnotationsModifiedBeforeTimestamp(int createdBy, Date dt, String aspect) throws Exception{
+        return adao.getAnnotationsModifiedBeforeTimestamp(createdBy,dt,aspect);
+    }
+
 
     public List<VariantMapData> getAllActiveVariantsWithRsId(String rsId) throws Exception{
         return vdao.getAllActiveVariantsByRsId(rsId);
@@ -305,13 +322,5 @@ public class DAO {
 
     public void setXdbKey(int xdbKey) {
         this.xdbKey = xdbKey;
-    }
-
-    public int getCountOfAnnotationsByReference(int refRgdId, String dataSource, String aspect) throws Exception{
-        return adao.getCountOfAnnotationsByReference(refRgdId,dataSource,aspect);
-    }
-
-    public List<Annotation> getAnnotationsModifiedBeforeTimestamp(int createdBy, Date dt, String aspect) throws Exception{
-        return adao.getAnnotationsModifiedBeforeTimestamp(createdBy,dt,aspect);
     }
 }
