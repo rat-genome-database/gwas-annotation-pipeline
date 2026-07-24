@@ -1,3 +1,6 @@
+July 24, 2026
+better handling of annotation aspect
+
 July 20, 2026
 map OBA_VT ids from GWAS to VT terms for annotation (e.g. OBA_VT0001253 -> VT:0001253)
 

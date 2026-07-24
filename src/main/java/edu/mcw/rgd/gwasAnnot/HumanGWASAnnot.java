@@ -28,6 +28,8 @@ public class HumanGWASAnnot {
     String deleteThresholdForStaleAnnotations;
     HashMap<String, Integer> ontTermNotFoundFreqMap;
 
+    HashMap<String, String> ontIdToAspectMap;
+
     void createQtlAnnots() throws Exception{
 //        int qtlNum = 1;
         long time0 = System.currentTimeMillis();
@@ -39,6 +41,8 @@ public class HumanGWASAnnot {
         status.info("GWAS Annotation Pipeline started at "+sdt.format(date0));
 
         status.info("\tStarting run for GWAS QTLs");
+
+        ontIdToAspectMap = dao.loadOntIdToAspectMap();
 
         ontTermNotFoundFreqMap = new HashMap<>();
 
@@ -163,13 +167,7 @@ public class HumanGWASAnnot {
                     }
                 }
 
-                String aspect = null;
-                if( t!=null ) {
-                    aspect = getAspectFromTermAcc(t.getAccId());
-                }
-                if( aspect==null ) {
-                    aspect = "T"; // originally, all QTL annotations had aspect set to 'T' (EFO)
-                }
+                String aspect = ontIdToAspectMap.get(t.getOntologyId());
 
                 String notes;
                 if (efoId.startsWith("EFO"))
@@ -216,16 +214,6 @@ public class HumanGWASAnnot {
                     // loop through and check if they match above Aspects
                     for (TermSynonym ts : synonyms) {
                         Annotation annot = new Annotation();
-                        if (ts.getTermAcc().startsWith("CMO")) {
-                            annot.setAspect("L");
-                        } else if (ts.getTermAcc().startsWith("DOID")) {
-                            annot.setAspect("D");
-                        } else if (ts.getTermAcc().startsWith("VT")) {
-                            annot.setAspect("V");
-                        } else if (ts.getTermAcc().startsWith("HP")) {
-                            annot.setAspect("H");
-                        } else
-                            continue;
                         Term term = dao.getTermByAccId(ts.getTermAcc());
                         if (term == null) {
                             nullTerms++;
@@ -235,6 +223,8 @@ public class HumanGWASAnnot {
                             obsoleteTerms++;
                             continue;
                         }
+                        annot.setAspect(ontIdToAspectMap.get(term.getOntologyId()));
+
                         if (!checkAnnotationExistWithEFO(gwasQtl.getRgdId(), term, t) && !terms.contains(term.getAccId())) {
                             annot.setCreatedBy(getCreatedBy());
                             annot.setLastModifiedBy(getCreatedBy());
@@ -321,24 +311,6 @@ public class HumanGWASAnnot {
                 status.info("\t\t"+entry.getKey()+": "+entry.getValue());
             }
         }
-    }
-
-    String getAspectFromTermAcc( String termAcc ) {
-
-        String aspect = null;
-
-        if (termAcc.startsWith("CMO")) {
-            aspect = "L";
-        } else if (termAcc.startsWith("DOID")) {
-            aspect = "D";
-        } else if (termAcc.startsWith("VT")) {
-            aspect = "V";
-        } else if (termAcc.startsWith("HP")) {
-            aspect = "H";
-        } else if (termAcc.startsWith("EFO") ) {
-            aspect = "T";
-        }
-        return aspect;
     }
 
     boolean checkRefAssocExist(int rgdId) throws Exception {
@@ -435,8 +407,7 @@ public class HumanGWASAnnot {
                     a.setLastModifiedBy(getCreatedBy());
                     a.setAnnotatedObjectRgdId(rgdId);
                     a.setRefRgdId(refRgdId);
-                    // VT terms (from OBA_VT ids) get aspect V; everything else stays T (EFO) as before
-                    a.setAspect(t.getAccId().startsWith("VT") ? "V" : "T");
+                    a.setAspect(ontIdToAspectMap.get(t.getOntologyId()));
                     a.setCreatedDate(new Date());
                     a.setLastModifiedDate(a.getLastModifiedDate());
 //                    a.setWithInfo("RGD:"+vmd.getId());
@@ -458,21 +429,12 @@ public class HumanGWASAnnot {
                     // loop through and check if they match above Aspects
                     for (TermSynonym ts : synonyms) {
                         Annotation annot = new Annotation();
-                        if (ts.getTermAcc().startsWith("CMO")) {
-                            annot.setAspect("L");
-                        } else if (ts.getTermAcc().startsWith("DOID")) {
-                            annot.setAspect("D");
-                        } else if (ts.getTermAcc().startsWith("VT")) {
-                            annot.setAspect("V");
-                        } else if(ts.getTermAcc().startsWith("HP")){
-                            annot.setAspect("H");
-                        } else
-                            continue;
                         Term term = dao.getTermByAccId(ts.getTermAcc());
                         if (term == null)
                             continue;
                         if (term.isObsolete())
                             continue;
+                        annot.setAspect(ontIdToAspectMap.get(t.getOntologyId()));
                         if (!checkAnnotationExistWithEFO(rgdId, term, t) && !terms.contains(term.getAccId())) {
                             annot.setCreatedBy(getCreatedBy());
                             annot.setLastModifiedBy(getCreatedBy());
@@ -660,7 +622,7 @@ public class HumanGWASAnnot {
         return staleAnnots.size();
     }
 
-    XdbId createXdb(GWASCatalog g, QTL gwasQtl) throws Exception{
+    XdbId createXdb(GWASCatalog g, QTL gwasQtl) {
         XdbId x = new XdbId();
         x.setAccId(g.getStudyAcc());
         x.setLinkText(g.getStudyAcc());

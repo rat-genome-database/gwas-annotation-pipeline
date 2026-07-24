@@ -5,6 +5,7 @@ import edu.mcw.rgd.dao.impl.variants.VariantDAO;
 import edu.mcw.rgd.dao.spring.StringMapQuery;
 import edu.mcw.rgd.datamodel.*;
 import edu.mcw.rgd.datamodel.ontology.Annotation;
+import edu.mcw.rgd.datamodel.ontologyx.Ontology;
 import edu.mcw.rgd.datamodel.ontologyx.Term;
 import edu.mcw.rgd.datamodel.ontologyx.TermSynonym;
 import edu.mcw.rgd.datamodel.variants.VariantMapData;
@@ -56,9 +57,6 @@ public class DAO {
         return vdao.getAllActiveVariantsByRsId(rsId);
     }
 
-    public List<Annotation> getAnnotationsModifiedBeforeTimestampForRDO(Date dt, int createdBy) throws Exception{
-        return adao.getAnnotationsModifiedBeforeTimestamp(createdBy,dt,"D");
-    }
     public List<XdbId> getGwasXdbs(int rgdId) throws Exception {
         return xdao.getXdbIdsByRgdId(getXdbKey(),rgdId);
     }
@@ -95,8 +93,14 @@ public class DAO {
         return gdao.getAllGWASByMapKey(mapKey);
     }
 
-    public Term getTermByName(String term, String ontId) throws Exception{
-        return odao.getTermByTermName(term,ontId);
+    public HashMap<String,String> loadOntIdToAspectMap() throws Exception {
+
+        HashMap<String, String> result = new HashMap<>();
+        List<Ontology> ontologies = odao.getOntologies();
+        for( Ontology o: ontologies ) {
+            result.put(o.getId(), o.getAspect());
+        }
+        return result;
     }
 
     public Term getTermByAccId(String accId) throws Exception{
@@ -152,16 +156,8 @@ public class DAO {
         return qtls.get(0);
     }
 
-    public void insertQTL(QTL q) throws Exception {
-        qdao.insertQTL(q,"ACTIVE",1);
-    }
-
     public int insertQTLBatch(Collection<QTL> qtls) throws Exception{
         return qdao.insertQTLBatch(qtls);
-    }
-
-    public int insertAnnotation(Annotation a) throws Exception {
-        return adao.insertAnnotation(a);
     }
 
     public int insertAnnotationsBatch(Collection<Annotation> annots) throws Exception{
