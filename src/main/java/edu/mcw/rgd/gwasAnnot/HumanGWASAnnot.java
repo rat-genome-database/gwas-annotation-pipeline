@@ -167,8 +167,14 @@ public class HumanGWASAnnot {
                         continue;
                     }
                 }
-
-                String aspect = ontIdToAspectMap.get(t.getOntologyId());
+                String aspect;
+                try {
+                    aspect = ontIdToAspectMap.get(t.getOntologyId());
+                }
+                catch (Exception e){
+                    logStatus.debug("\tTerm not found! -- "+t.getOntologyId());
+                        continue;
+                }
 
                 String notes;
                 if (efoId.startsWith("EFO"))
