@@ -172,7 +172,7 @@ public class HumanGWASAnnot {
                     aspect = ontIdToAspectMap.get(t.getOntologyId());
                 }
                 catch (Exception e){
-                    logStatus.debug("\tTerm not found! -- "+t.getOntologyId());
+                    logStatus.debug("\tTerm not found! -- "+efoId);
                         continue;
                 }
 
