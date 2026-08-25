@@ -1,3 +1,6 @@
+August 25,2026
+  skipping terms that do not have an aspect
+
 July 24, 2026
   better handling of annotation aspect
   better handling of obsolete annotations

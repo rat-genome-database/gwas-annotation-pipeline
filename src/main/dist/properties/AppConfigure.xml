@@ -1,11 +1,11 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans>
     <bean id="gwasAnnot" class="edu.mcw.rgd.gwasAnnot.HumanGWASAnnot">
-        <property name="version" value="gwas-annotation-pipeline -- July 24, 2026"/>
+        <property name="version" value="gwas-annotation-pipeline -- Aug 25, 2026"/>
         <property name="createdBy" value="76" />
         <property name="refRgdId" value="405850206"/>
         <property name="refKey" value="138654"/>
-        <property name="deleteThresholdForStaleAnnotations" value="100%"/>
+        <property name="deleteThresholdForStaleAnnotations" value="5%"/>
     </bean>
 
     <bean id="ratAnnot" class="edu.mcw.rgd.gwasAnnot.RatAnnot">
