@@ -166,7 +166,7 @@ public class DAO {
     }
 
     public QTL getQtlByChrPValRs(String chr, String pval, String rsId) throws Exception{
-        String sql = "select q.*, r.SPECIES_TYPE_KEY from QTLs q, RGD_IDS r where r.RGD_ID=q.RGD_ID and q.chromosome=? and q.p_value=? and q.peak_rs_id=?";
+        String sql = "select q.*, r.SPECIES_TYPE_KEY from QTLs q, RGD_IDS r where r.RGD_ID=q.RGD_ID and q.chromosome=? and q.p_value=CAST(? AS numeric) and q.peak_rs_id=?";
         List<QTL> qtls = qdao.executeQtlQuery(sql, chr, pval, rsId);
         if (qtls.isEmpty())
             return null;
